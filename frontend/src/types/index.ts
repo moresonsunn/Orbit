@@ -118,6 +118,7 @@ export interface Container {
 export interface HostMetrics {
   timestamp: string;
   cpu: {
+    modelName?: string;
     totalPercent: Gauge;
     cores: number;
     threads: number;
@@ -171,6 +172,18 @@ export interface HostMetrics {
       txBytes: number;
       rxBps: Gauge;
       txBps: Gauge;
+    }>;
+  };
+  thermal?: {
+    cpuTemp: Gauge;
+    maxTemp: Gauge;
+    sensors: Array<{
+      name: string;
+      label: string;
+      device: string;
+      tempC: Gauge;
+      critC: Gauge;
+      sensorType: string;
     }>;
   };
   system: {

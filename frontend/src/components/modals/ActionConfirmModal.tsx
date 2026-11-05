@@ -28,12 +28,12 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md bg-[#151b26] border border-[#232d3f] rounded-lg shadow-2xl overflow-hidden p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150 font-sans">
+      <div className="relative w-full max-w-md bg-[#181818] border border-[#282828] rounded-xl shadow-2xl overflow-hidden p-6">
         <button
           onClick={onClose}
           disabled={isLoading}
-          className="absolute top-4 right-4 p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-[#1c2433] transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-md text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -51,19 +51,19 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
           </div>
 
           <div className="flex-1 pr-4">
-            <h3 className="text-base font-semibold text-slate-100">{title}</h3>
-            <p className="text-xs text-slate-400 mt-1 leading-relaxed">{description}</p>
+            <h3 className="text-base font-semibold text-white tracking-tight">{title}</h3>
+            <p className="text-xs text-neutral-400 mt-1 leading-relaxed">{description}</p>
           </div>
         </div>
 
         {affectedItems && affectedItems.length > 0 && (
-          <div className="mt-4 p-3 bg-[#0e121b] border border-[#232d3f] rounded-md">
-            <span className="text-xs font-medium text-slate-400 block mb-1">
+          <div className="mt-4 p-3 bg-[#121212] border border-[#282828] rounded-md">
+            <span className="text-xs font-medium text-neutral-300 block mb-1">
               Betroffene Elemente ({affectedItems.length}):
             </span>
-            <div className="max-h-28 overflow-y-auto space-y-1 font-mono text-xs text-slate-300">
+            <div className="max-h-28 overflow-y-auto space-y-1 font-mono text-xs text-neutral-300">
               {affectedItems.map((item, i) => (
-                <div key={i} className="truncate bg-[#151b26] px-2 py-0.5 rounded border border-[#232d3f]">
+                <div key={i} className="truncate bg-[#181818] px-2 py-0.5 rounded border border-[#282828]">
                   {item}
                 </div>
               ))}
@@ -75,7 +75,7 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-300 bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] transition-colors"
+            className="px-3.5 py-1.5 rounded-md text-xs font-medium text-neutral-300 bg-[#121212] border border-[#282828] hover:bg-[#202020] transition-colors"
           >
             Abbrechen
           </button>

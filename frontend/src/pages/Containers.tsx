@@ -34,6 +34,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const [filterState, setFilterState] = useState<'all' | 'running' | 'stopped' | 'unhealthy'>('all');
+  const [viewMode, setViewMode] = useState<'flat' | 'stacks'>('flat');
   const [selectedIDs, setSelectedIDs] = useState<string[]>([]);
   const [activeModal, setActiveModal] = useState<{
     action: 'start' | 'stop' | 'restart' | 'remove' | 'bulk-start' | 'bulk-stop' | 'bulk-restart';
@@ -60,6 +61,18 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
     if (filterState === 'unhealthy') return c.health === 'unhealthy';
     return true;
   });
+
+  const stackGroups = React.useMemo(() => {
+    const map = new Map<string, Container[]>();
+    filtered.forEach((c) => {
+      const stack = c.composeProject || 'Standalone';
+      if (!map.has(stack)) {
+        map.set(stack, []);
+      }
+      map.get(stack)!.push(c);
+    });
+    return Array.from(map.entries());
+  }, [filtered]);
 
   const toggleSelectAll = () => {
     if (selectedIDs.length === filtered.length) {
@@ -159,6 +172,27 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             {filtered.length} {filtered.length === 1 ? 'container' : 'containers'}
           </span>
         </div>
+
+        {/* View Mode Toggle (Flat vs. Compose Stacks) */}
+        <div className="flex items-center gap-1 bg-[#181818] border border-[#2a2a2a] p-0.5 rounded-md self-start sm:self-auto">
+          <button
+            onClick={() => setViewMode('flat')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+              viewMode === 'flat' ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            Flache Liste
+          </button>
+          <button
+            onClick={() => setViewMode('stacks')}
+            className={`px-2.5 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1.5 ${
+              viewMode === 'stacks' ? 'bg-white/10 text-white' : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Layers className="w-3 h-3" />
+            <span>Compose Stacks</span>
+          </button>
+        </div>
       </div>
 
       {/* Bulk Action Bar (visible when items selected) */}
@@ -233,6 +267,190 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                   Keine passenden Container gefunden.
                 </td>
               </tr>
+            ) : viewMode === 'stacks' ? (
+              stackGroups.map(([stackName, stackContainers]) => (
+                <React.Fragment key={stackName}>
+                  <tr className="bg-[#151515] border-y border-[#262626]">
+                    <td colSpan={9} className="py-2 px-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Layers className="w-3.5 h-3.5 text-blue-400" />
+                          <span className="font-semibold text-white text-xs">
+                            {stackName === 'Standalone' ? 'Standalone / Manuell' : `Compose Stack: ${stackName}`}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#202020] text-neutral-400 font-mono">
+                            {stackContainers.length} {stackContainers.length === 1 ? 'Container' : 'Container'}
+                          </span>
+                        </div>
+                        {actionsEnabled && stackName !== 'Standalone' && (
+                          <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => {
+                                const ids = stackContainers.map((sc) => sc.id);
+                                api.bulkRestart(ids).then(onRefresh);
+                              }}
+                              className="px-2 py-0.5 rounded text-[11px] bg-[#1a1a1a] border border-[#2a2a2a] hover:bg-[#222222] text-neutral-300 transition-colors"
+                              title="Alle Container dieses Stacks neu starten"
+                            >
+                              Stack neu starten
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                  {stackContainers.map((c) => {
+                    const isSelected = selectedIDs.includes(c.id);
+                    const isRunning = c.state === 'running';
+
+                    return (
+                      <tr
+                        key={c.id}
+                        onClick={() => onSelectContainer(c.id)}
+                        className={`hover:bg-white/[0.02] cursor-pointer transition-colors ${
+                          isSelected ? 'bg-blue-950/20' : ''
+                        }`}
+                      >
+                        <td className="py-3 px-2" onClick={(e) => toggleSelect(c.id, e)}>
+                          {isSelected ? (
+                            <CheckSquare className="w-4 h-4 text-blue-500" />
+                          ) : (
+                            <UncheckedSquare className="w-4 h-4 text-neutral-600 hover:text-neutral-400" />
+                          )}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-white text-[13px] hover:underline">
+                              {c.name}
+                            </span>
+                            <span className="text-xs text-neutral-400 font-mono truncate max-w-[220px]">
+                              {c.imageRepo}:{c.imageTag}
+                            </span>
+                            {c.composeProject && (
+                              <span className="inline-block self-start mt-0.5 px-1.5 py-0.5 rounded text-[10px] bg-[#1e1e1e] text-neutral-400 font-mono">
+                                compose: {c.composeProject}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-xs" onClick={(e) => e.stopPropagation()}>
+                          {c.ports.length === 0 ? (
+                            <span className="text-neutral-600">—</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1 max-w-[190px]" title={c.ports.map((p) => `${p.publicPort || ''}:${p.privatePort}/${p.protocol}`).join(', ')}>
+                              {c.ports.slice(0, 2).map((p, i) =>
+                                p.publicPort ? (
+                                  <a
+                                    key={i}
+                                    href={`http://${window.location.hostname}:${p.publicPort}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-blue-500/70 hover:text-blue-400 px-1.5 py-0.5 rounded text-[11px] text-neutral-300 transition-colors"
+                                    title={`Web-App öffnen: http://${window.location.hostname}:${p.publicPort}`}
+                                  >
+                                    <span>{p.publicPort}:{p.privatePort}</span>
+                                    <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                                  </a>
+                                ) : (
+                                  <span key={i} className="inline-block bg-[#1a1a1a] border border-[#262626] px-1.5 py-0.5 rounded text-[11px] text-neutral-400">
+                                    {p.privatePort}/{p.protocol}
+                                  </span>
+                                )
+                              )}
+                              {c.ports.length > 2 && <span className="text-neutral-500 text-[10px] self-center">+{c.ports.length - 2}</span>}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-xs text-neutral-300">
+                          {c.stats?.cpuPercent.value !== null && c.stats?.cpuPercent.value !== undefined ? (
+                            <span className={c.stats.cpuPercent.value > 80 ? 'text-rose-400 font-bold' : ''}>
+                              {formatPercent(c.stats.cpuPercent.value)}
+                            </span>
+                          ) : (
+                            <span className="text-neutral-600">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-xs text-neutral-300">
+                          {c.stats?.memUsage.value !== null && c.stats?.memUsage.value !== undefined ? (
+                            <div className="flex flex-col">
+                              <span>{formatBytes(c.stats.memUsage.value)}</span>
+                              <span className="text-[10px] text-neutral-500">{formatPercent(c.stats.memPercent.value)}</span>
+                            </div>
+                          ) : (
+                            <span className="text-neutral-600">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-xs text-neutral-400">
+                          {c.stats ? (
+                            <div className="flex flex-col text-[11px]">
+                              <span>↓ {formatBps(c.stats.netRxBps.value)}</span>
+                              <span className="text-neutral-500">↑ {formatBps(c.stats.netTxBps.value)}</span>
+                            </div>
+                          ) : (
+                            <span className="text-neutral-600">—</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3 font-mono text-xs text-neutral-400">
+                          {c.startedAt
+                            ? formatUptime(Math.floor((Date.now() - new Date(c.startedAt).getTime()) / 1000))
+                            : '—'}
+                        </td>
+                        <td className="py-3 px-3">
+                          <StatusBadge status={c.state} />
+                        </td>
+                        <td className="py-3 px-3 text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
+                            {isRunning ? (
+                              <>
+                                <button
+                                  onClick={() => setActiveModal({ action: 'restart', targetId: c.id, targetName: c.name })}
+                                  disabled={!actionsEnabled}
+                                  className="p-1.5 rounded text-neutral-400 hover:text-white hover:bg-[#202020] disabled:opacity-30 transition-colors"
+                                  title="Neustarten"
+                                >
+                                  <RotateCw className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => setActiveModal({ action: 'stop', targetId: c.id, targetName: c.name })}
+                                  disabled={!actionsEnabled}
+                                  className="p-1.5 rounded text-neutral-400 hover:text-amber-400 hover:bg-[#202020] disabled:opacity-30 transition-colors"
+                                  title="Stoppen"
+                                >
+                                  <Square className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => setActiveModal({ action: 'start', targetId: c.id, targetName: c.name })}
+                                disabled={!actionsEnabled}
+                                className="p-1.5 rounded text-neutral-400 hover:text-emerald-400 hover:bg-[#202020] disabled:opacity-30 transition-colors"
+                                title="Starten"
+                              >
+                                <Play className="w-3.5 h-3.5 fill-current" />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => onSelectContainer(c.id)}
+                              className="p-1.5 rounded text-neutral-400 hover:text-white hover:bg-[#202020] transition-colors"
+                              title="Details öffnen"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setActiveModal({ action: 'remove', targetId: c.id, targetName: c.name })}
+                              disabled={!destructiveEnabled}
+                              className="p-1.5 rounded text-neutral-400 hover:text-rose-400 hover:bg-[#202020] disabled:opacity-30 transition-colors"
+                              title="Container löschen"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </React.Fragment>
+              ))
             ) : (
               filtered.map((c) => {
                 const isSelected = selectedIDs.includes(c.id);
@@ -268,17 +486,31 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-3 font-mono text-xs">
+                    <td className="py-3 px-3 font-mono text-xs" onClick={(e) => e.stopPropagation()}>
                       {c.ports.length === 0 ? (
                         <span className="text-neutral-600">—</span>
                       ) : (
-                        <div className="max-w-[160px] truncate" title={c.ports.map((p) => `${p.publicPort || ''}:${p.privatePort}/${p.protocol}`).join(', ')}>
-                          {c.ports.slice(0, 2).map((p, i) => (
-                            <span key={i} className="inline-block bg-[#1a1a1a] border border-[#262626] px-1.5 py-0.5 rounded text-[11px] mr-1 text-neutral-300">
-                              {p.publicPort ? `${p.publicPort}:` : ''}{p.privatePort}
-                            </span>
-                          ))}
-                          {c.ports.length > 2 && <span className="text-neutral-500 text-[10px]">+{c.ports.length - 2}</span>}
+                        <div className="flex flex-wrap gap-1 max-w-[190px]" title={c.ports.map((p) => `${p.publicPort || ''}:${p.privatePort}/${p.protocol}`).join(', ')}>
+                          {c.ports.slice(0, 2).map((p, i) =>
+                            p.publicPort ? (
+                              <a
+                                key={i}
+                                href={`http://${window.location.hostname}:${p.publicPort}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 bg-[#1a1a1a] border border-[#2a2a2a] hover:border-blue-500/70 hover:text-blue-400 px-1.5 py-0.5 rounded text-[11px] text-neutral-300 transition-colors"
+                                title={`Web-App öffnen: http://${window.location.hostname}:${p.publicPort}`}
+                              >
+                                <span>{p.publicPort}:{p.privatePort}</span>
+                                <ExternalLink className="w-2.5 h-2.5 opacity-60" />
+                              </a>
+                            ) : (
+                              <span key={i} className="inline-block bg-[#1a1a1a] border border-[#262626] px-1.5 py-0.5 rounded text-[11px] text-neutral-400">
+                                {p.privatePort}/{p.protocol}
+                              </span>
+                            )
+                          )}
+                          {c.ports.length > 2 && <span className="text-neutral-500 text-[10px] self-center">+{c.ports.length - 2}</span>}
                         </div>
                       )}
                     </td>

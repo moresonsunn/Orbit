@@ -128,7 +128,7 @@ export const App: React.FC = () => {
   const runningCount = containers.filter((c) => c.state === 'running').length;
 
   return (
-    <div className="flex h-screen bg-[#090d16] text-slate-100 overflow-hidden font-sans">
+    <div className="flex h-screen bg-[#111111] text-neutral-100 overflow-hidden font-sans">
       {/* Sidebar Navigation */}
       <Sidebar
         currentTab={selectedContainerId ? 'containers' : currentTab}

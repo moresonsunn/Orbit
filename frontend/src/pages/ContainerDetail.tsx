@@ -13,6 +13,8 @@ import {
   Search,
   Copy,
   Check,
+  Layers,
+  ExternalLink,
 } from 'lucide-react';
 import { Container, ContainerStats, AuthStatus } from '../types';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -39,9 +41,10 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
   const [history, setHistory] = useState<ContainerStats[]>([]);
   const [logs, setLogs] = useState<string>('');
   const [logSearch, setLogSearch] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'network' | 'logs' | 'inspect'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'network' | 'logs' | 'compose' | 'inspect'>('overview');
   const [loading, setLoading] = useState(true);
   const [copiedInspect, setCopiedInspect] = useState(false);
+  const [copiedCompose, setCopiedCompose] = useState(false);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   const actionsEnabled = authStatus?.features.enableActions ?? false;
@@ -86,7 +89,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
 
   if (loading || !data) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400 font-mono text-xs">
+      <div className="flex items-center justify-center h-64 text-neutral-500 font-mono text-xs">
         Lade Container-Details...
       </div>
     );
@@ -122,6 +125,38 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
     navigator.clipboard.writeText(JSON.stringify(data.inspect || data.raw, null, 2));
     setCopiedInspect(true);
     setTimeout(() => setCopiedInspect(false), 2000);
+  };
+
+  const generateComposeSnippet = (cont: Container) => {
+    const lines: string[] = [];
+    lines.push('services:');
+    lines.push(`  ${cont.name}:`);
+    lines.push(`    image: ${cont.imageRepo}:${cont.imageTag}`);
+    lines.push(`    container_name: ${cont.name}`);
+    if (cont.restartPolicy && cont.restartPolicy !== 'no') {
+      lines.push(`    restart: ${cont.restartPolicy}`);
+    }
+    if (cont.ports && cont.ports.length > 0) {
+      lines.push('    ports:');
+      cont.ports.forEach((p) => {
+        lines.push(`      - "${p.publicPort ? `${p.publicPort}:` : ''}${p.privatePort}/${p.protocol}"`);
+      });
+    }
+    if (cont.mounts && cont.mounts.length > 0) {
+      lines.push('    volumes:');
+      cont.mounts.forEach((m) => {
+        lines.push(`      - "${m.source}:${m.destination}${m.rw ? '' : ':ro'}"`);
+      });
+    }
+    return lines.join('\n');
+  };
+
+  const copyCompose = () => {
+    if (!c) return;
+    const yaml = generateComposeSnippet(c);
+    navigator.clipboard.writeText(yaml);
+    setCopiedCompose(true);
+    setTimeout(() => setCopiedCompose(false), 2000);
   };
 
   return (
@@ -199,8 +234,9 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
         {[
           { id: 'overview', label: 'Overview', icon: Info },
           { id: 'performance', label: 'Performance', icon: Activity },
-          { id: 'network', label: 'Network', icon: Network },
+          { id: 'network', label: 'Network & Ports', icon: Network },
           { id: 'logs', label: 'Logs', icon: Terminal },
+          { id: 'compose', label: 'Compose Export', icon: Layers },
           { id: 'inspect', label: 'Inspect', icon: Code },
         ].map((tab) => {
           const Icon = tab.icon;
@@ -324,21 +360,55 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       )}
 
       {activeTab === 'network' && (
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
-          <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Netzwerk-Konfiguration</h3>
-          <div className="space-y-2">
-            {c.networks.map((net, i) => (
-              <div key={i} className="p-3 bg-[#121212] rounded-md border border-[#242424] flex justify-between items-center text-xs">
-                <div>
-                  <span className="font-semibold text-white block">{net.name}</span>
-                  <span className="text-neutral-500 font-mono text-[10px]">Netzwerk-ID: {net.networkId.slice(0, 12)}</span>
-                </div>
-                <div className="text-right font-mono text-neutral-300">
-                  <span>IP: {net.ipAddress || '—'}</span>
-                  {net.gateway && <span className="text-neutral-500 block text-[10px]">Gateway: {net.gateway}</span>}
-                </div>
+        <div className="space-y-4">
+          <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Veröffentlichte Ports & Web-Endpunkte</h3>
+            {c.ports.length === 0 ? (
+              <p className="text-xs text-neutral-500">Keine Ports für diesen Container veröffentlicht.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                {c.ports.map((p, i) => (
+                  <div key={i} className="p-3 bg-[#121212] rounded-md border border-[#242424] flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-mono text-neutral-200 block font-medium">
+                        {p.publicPort ? `${p.publicPort}:` : ''}{p.privatePort}
+                      </span>
+                      <span className="text-[10px] text-neutral-500 uppercase font-mono">{p.protocol} · {p.hostIp || '0.0.0.0'}</span>
+                    </div>
+                    {p.publicPort && (
+                      <a
+                        href={`http://${window.location.hostname}:${p.publicPort}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#1c1c1c] border border-[#2e2e2e] hover:border-blue-500/70 text-blue-400 text-xs font-medium transition-colors"
+                        title="In neuem Tab öffnen"
+                      >
+                        <span>Öffnen</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+          </div>
+
+          <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wider">Docker Netzwerke</h3>
+            <div className="space-y-2">
+              {c.networks.map((net, i) => (
+                <div key={i} className="p-3 bg-[#121212] rounded-md border border-[#242424] flex justify-between items-center text-xs">
+                  <div>
+                    <span className="font-semibold text-white block">{net.name}</span>
+                    <span className="text-neutral-500 font-mono text-[10px]">Netzwerk-ID: {net.networkId.slice(0, 12)}</span>
+                  </div>
+                  <div className="text-right font-mono text-neutral-300">
+                    <span>IP: {net.ipAddress || '—'}</span>
+                    {net.gateway && <span className="text-neutral-500 block text-[10px]">Gateway: {net.gateway}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -376,6 +446,27 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
             {filteredLogs || 'Keine Logs vorhanden.'}
             <div ref={logEndRef} />
           </div>
+        </div>
+      )}
+
+      {activeTab === 'compose' && (
+        <div className="rounded-lg bg-[#121212] border border-[#282828] overflow-hidden">
+          <div className="p-3 bg-[#181818] border-b border-[#282828] flex items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold text-white">docker-compose.yml</span>
+              <span className="text-[11px] text-neutral-500 block">Automatisch generiertes Compose-Snippet für diesen Container</span>
+            </div>
+            <button
+              onClick={copyCompose}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#181818] border border-[#282828] hover:bg-[#222222] text-xs text-neutral-300 transition-colors"
+            >
+              {copiedCompose ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedCompose ? 'Kopiert' : 'YAML kopieren'}</span>
+            </button>
+          </div>
+          <pre className="p-4 font-mono text-xs text-emerald-400/90 overflow-x-auto max-h-[500px] leading-relaxed select-text">
+            {generateComposeSnippet(c)}
+          </pre>
         </div>
       )}
 

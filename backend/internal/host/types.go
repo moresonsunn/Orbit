@@ -13,10 +13,27 @@ type HostMetrics struct {
 	Swap      SwapMetrics    `json:"swap"`
 	Storage   StorageMetrics `json:"storage"`
 	Network   NetworkMetrics `json:"network"`
+	Thermal   ThermalMetrics `json:"thermal"`
 	System    SystemInfo     `json:"system"`
 }
 
+type ThermalSensor struct {
+	Name       string      `json:"name"`
+	Label      string      `json:"label"`
+	Device     string      `json:"device"`
+	TempC      model.Gauge `json:"tempC"`
+	CritC      model.Gauge `json:"critC"`
+	SensorType string      `json:"sensorType"`
+}
+
+type ThermalMetrics struct {
+	CPUTemp model.Gauge     `json:"cpuTemp"`
+	MaxTemp model.Gauge     `json:"maxTemp"`
+	Sensors []ThermalSensor `json:"sensors"`
+}
+
 type CPUMetrics struct {
+	ModelName    string        `json:"modelName"`
 	TotalPercent model.Gauge   `json:"totalPercent"`
 	Cores        int           `json:"cores"`
 	Threads      int           `json:"threads"`

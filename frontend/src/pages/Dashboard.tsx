@@ -12,6 +12,14 @@ import {
   Database,
   Thermometer,
   Zap,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  X,
+  Check,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { MetricCard } from '../components/common/MetricCard';
 import { StatusBadge } from '../components/common/StatusBadge';
@@ -19,6 +27,13 @@ import { Container, HostMetrics, GPUTelemetry, SystemInfoResponse } from '../typ
 import { formatBytes, formatBps, formatPercent, formatUptime } from '../lib/utils';
 import { wsClient } from '../lib/ws';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  loadDashboardPrefs,
+  saveDashboardPrefs,
+  PRESET_CONFIGS,
+  DashboardPreferences,
+  DashboardPreset,
+} from '../lib/dashboardConfig';
 
 interface DashboardProps {
   initialSystemInfo?: SystemInfoResponse;
@@ -39,6 +54,23 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [containers, setContainers] = useState<Container[]>(initialContainers);
   const [gpu, setGpu] = useState<GPUTelemetry | undefined>(initialGPU);
   const [sysInfo, setSysInfo] = useState<SystemInfoResponse | undefined>(initialSystemInfo);
+  const [showCores, setShowCores] = useState(false);
+  const [prefs, setPrefs] = useState<DashboardPreferences>(loadDashboardPrefs);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+
+  const updatePref = <K extends keyof DashboardPreferences>(key: K, value: DashboardPreferences[K]) => {
+    setPrefs((prev) => {
+      const next = { ...prev, [key]: value };
+      saveDashboardPrefs(next);
+      return next;
+    });
+  };
+
+  const setPreset = (preset: DashboardPreset) => {
+    const next = { ...PRESET_CONFIGS[preset] };
+    setPrefs(next);
+    saveDashboardPrefs(next);
+  };
 
   // Live Chart rolling points (last 30 samples)
   const [chartData, setChartData] = useState<Array<{ time: string; cpu: number; ram: number; rx: number; tx: number }>>([]);
@@ -95,8 +127,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const primaryGPU = gpu?.devices && gpu.devices.length > 0 ? gpu.devices[0] : null;
 
+  const thermalSensors = metrics?.thermal?.sensors || [];
+  const cpuSensors = thermalSensors.filter((s) => s.sensorType === 'cpu');
+  const nvmeSensors = thermalSensors.filter((s) => s.sensorType === 'nvme');
+  const mbSensors = thermalSensors.filter((s) => s.sensorType === 'motherboard');
+  const hasSensors = thermalSensors.length > 0;
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+    <div className={`animate-in fade-in duration-200 font-sans ${prefs.compactMode ? 'space-y-4' : 'space-y-6'}`}>
       {/* Page Header (Tailscale style) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -105,126 +143,283 @@ export const Dashboard: React.FC<DashboardProps> = ({
             Zentrale Host-Telemetrie und Docker-Ressourcen im Sekundentakt.
           </p>
         </div>
+
+        <div className="flex items-center gap-2">
+          {/* Quick Preset Selector */}
+          <div className="hidden md:flex items-center bg-[#181818] border border-[#282828] p-0.5 rounded-lg text-xs">
+            {(['minimal', 'balanced', 'pro'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPreset(p)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  prefs.preset === p
+                    ? 'bg-white/10 text-white shadow-xs'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+              >
+                {p === 'minimal' ? 'Kompakt' : p === 'balanced' ? 'Standard' : 'Pro Sysadmin'}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setShowConfigModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#181818] border border-[#282828] hover:bg-[#222222] text-neutral-300 rounded-md text-xs font-medium transition-colors shadow-xs"
+            title="Widgets und Dashboard-Elemente anpassen"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            <span>Anpassen</span>
+          </button>
+        </div>
       </div>
 
       {/* Upper Information Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* CPU Card */}
-        <MetricCard
-          title="CPU Gesamt"
-          gauge={metrics?.cpu.totalPercent}
-          formattedValue={formatPercent(metrics?.cpu.totalPercent.value)}
-          progressPercent={metrics?.cpu.totalPercent.value ?? undefined}
-          subtitle={`${metrics?.cpu.cores ?? '—'} Kerne · ${metrics?.cpu.threads ?? '—'} Threads${
-            metrics?.cpu.freqMHz.value ? ` · ${metrics.cpu.freqMHz.value} MHz` : ''
-          }`}
-        />
-
-        {/* RAM Card */}
-        <MetricCard
-          title="Arbeitsspeicher"
-          gauge={metrics?.memory.usedPercent}
-          formattedValue={formatPercent(metrics?.memory.usedPercent.value)}
-          progressPercent={metrics?.memory.usedPercent.value ?? undefined}
-          subtitle={`${formatBytes(metrics?.memory.usedBytes)} von ${formatBytes(metrics?.memory.totalBytes)}`}
-        />
-
-        {/* Network RX/TX Card */}
-        <MetricCard
-          title="Netzwerk-Durchsatz"
-          formattedValue={formatBps((metrics?.network.rxBps.value ?? 0) + (metrics?.network.txBps.value ?? 0))}
-          subtitle={`↓ ${formatBps(metrics?.network.rxBps.value)} · ↑ ${formatBps(metrics?.network.txBps.value)}`}
-        />
-
-        {/* Storage Card */}
-        <MetricCard
-          title="Festplattenspeicher"
-          gauge={metrics?.storage.usedPercent}
-          formattedValue={formatPercent(metrics?.storage.usedPercent.value)}
-          progressPercent={metrics?.storage.usedPercent.value ?? undefined}
-          subtitle={`${formatBytes(metrics?.storage.usedBytes)} von ${formatBytes(metrics?.storage.totalBytes)}`}
-        />
-      </div>
-
-      {/* Secondary Metrics & Docker Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Load Average */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
-          <span className="text-xs font-medium text-neutral-400 block mb-2">Load Average</span>
-          <div className="flex items-center justify-between text-white mt-3">
-            <div>
-              <span className="text-[11px] text-neutral-500 block font-normal">1 min</span>
-              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg1.value?.toFixed(2) ?? '—'}</span>
-            </div>
-            <div>
-              <span className="text-[11px] text-neutral-500 block font-normal">5 min</span>
-              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg5.value?.toFixed(2) ?? '—'}</span>
-            </div>
-            <div>
-              <span className="text-[11px] text-neutral-500 block font-normal">15 min</span>
-              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg15.value?.toFixed(2) ?? '—'}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Temperature & Host Power */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
-          <span className="text-xs font-medium text-neutral-400 block mb-2">Systemtemperatur</span>
-          <div className="flex items-baseline gap-2 mt-2">
-            <span className="text-2xl font-semibold tracking-tight text-white tabular-nums font-mono">
-              {metrics?.cpu.tempC.value ? `${metrics.cpu.tempC.value} °C` : '—'}
-            </span>
-            <span className="text-xs text-neutral-500 font-normal">CPU</span>
-          </div>
-          <p className="text-xs text-neutral-500 mt-2 font-normal font-mono">
-            Uptime: {formatUptime(metrics?.system.uptimeSeconds.value)}
-          </p>
-        </div>
-
-        {/* GPU Telemetry Preview */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
-          <span className="text-xs font-medium text-neutral-400 block mb-2">GPU Telemetrie</span>
-          {primaryGPU ? (
-            <div>
-              <div className="flex items-baseline gap-2 mt-2">
-                <span className="text-xl font-semibold tracking-tight text-white tabular-nums font-mono">
-                  {formatPercent(primaryGPU.utilizationPercent.value)}
+      {prefs.showSummary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* CPU Card */}
+          <MetricCard
+            title="CPU Gesamt"
+            headerRight={
+              metrics?.cpu.perCore && metrics.cpu.perCore.length > 0 ? (
+                <button
+                  onClick={() => setShowCores(!showCores)}
+                  className={`text-[10px] px-2 py-0.5 rounded transition-colors flex items-center gap-1 ${
+                    showCores
+                      ? 'bg-white/10 text-white border border-neutral-600'
+                      : 'bg-[#202020] text-neutral-400 border border-[#2c2c2c] hover:text-white hover:bg-[#262626]'
+                  }`}
+                  title="Kerne & Threads detailliert anzeigen"
+                >
+                  <span>{showCores ? 'Verbergen' : `${metrics.cpu.threads} Kerne`}</span>
+                  {showCores ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                </button>
+              ) : null
+            }
+            gauge={metrics?.cpu.totalPercent}
+            formattedValue={formatPercent(metrics?.cpu.totalPercent.value)}
+            progressPercent={metrics?.cpu.totalPercent.value ?? undefined}
+            subtitle={
+              <div className="space-y-0.5 truncate">
+                <span className="font-medium text-neutral-200 block truncate" title={metrics?.cpu.modelName || 'Host Prozessor'}>
+                  {metrics?.cpu.modelName || 'Host Prozessor'}
                 </span>
-                <span className="text-xs text-neutral-500 font-normal">Auslastung</span>
+                <span className="text-neutral-500 text-[11px] block font-mono truncate">
+                  {metrics?.cpu.cores ?? '—'} Kerne · {metrics?.cpu.threads ?? '—'} Threads
+                  {metrics?.cpu.freqMHz.value
+                    ? ` · ${(metrics.cpu.freqMHz.value >= 1000
+                        ? (metrics.cpu.freqMHz.value / 1000).toFixed(2) + ' GHz'
+                        : metrics.cpu.freqMHz.value + ' MHz')}`
+                    : ''}
+                </span>
               </div>
-              <p className="text-xs text-neutral-500 mt-2 font-normal truncate">
-                {primaryGPU.model} {primaryGPU.temperatureCelsius.value ? `(${primaryGPU.temperatureCelsius.value}°C)` : ''}
-              </p>
+            }
+          />
+
+          {/* RAM Card */}
+          <MetricCard
+            title="Arbeitsspeicher"
+            gauge={metrics?.memory.usedPercent}
+            formattedValue={formatPercent(metrics?.memory.usedPercent.value)}
+            progressPercent={metrics?.memory.usedPercent.value ?? undefined}
+            subtitle={
+              <div className="space-y-0.5 truncate">
+                <span className="font-medium text-neutral-200 block">
+                  {formatBytes(metrics?.memory.usedBytes)} von {formatBytes(metrics?.memory.totalBytes)}
+                </span>
+                <span className="text-neutral-500 text-[11px] block font-mono truncate">
+                  Frei: {formatBytes(metrics?.memory.availableBytes || metrics?.memory.freeBytes)}
+                  {metrics?.memory.cachedBytes ? ` · Cache: ${formatBytes(metrics.memory.cachedBytes)}` : ''}
+                </span>
+              </div>
+            }
+          />
+
+          {/* Network RX/TX Card */}
+          <MetricCard
+            title="Netzwerk-Durchsatz"
+            formattedValue={formatBps((metrics?.network.rxBps.value ?? 0) + (metrics?.network.txBps.value ?? 0))}
+            subtitle={
+              <div className="space-y-0.5 truncate">
+                <span className="font-medium text-neutral-200 block">
+                  ↓ {formatBps(metrics?.network.rxBps.value)} · ↑ {formatBps(metrics?.network.txBps.value)}
+                </span>
+                <span className="text-neutral-500 text-[11px] block font-mono truncate">
+                  Gesamt: {formatBytes(metrics?.network.totalRxBytes)} RX · {formatBytes(metrics?.network.totalTxBytes)} TX
+                </span>
+              </div>
+            }
+          />
+
+          {/* Storage Card */}
+          <MetricCard
+            title="Festplattenspeicher"
+            gauge={metrics?.storage.usedPercent}
+            formattedValue={formatPercent(metrics?.storage.usedPercent.value)}
+            progressPercent={metrics?.storage.usedPercent.value ?? undefined}
+            subtitle={
+              <div className="space-y-0.5 truncate">
+                <span className="font-medium text-neutral-200 block">
+                  {formatBytes(metrics?.storage.usedBytes)} von {formatBytes(metrics?.storage.totalBytes)}
+                </span>
+                <span className="text-neutral-500 text-[11px] block font-mono truncate">
+                  I/O: ↓ {formatBps(metrics?.storage.readBps.value)} · ↑ {formatBps(metrics?.storage.writeBps.value)}
+                </span>
+              </div>
+            }
+          />
+        </div>
+      )}
+
+      {/* Expandable Per-Core Grid (Beszel/htop style) */}
+      {showCores && metrics?.cpu.perCore && metrics.cpu.perCore.length > 0 && (
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs animate-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h4 className="text-xs font-semibold text-white tracking-tight">CPU Kern-Auslastung</h4>
+              <p className="text-[11px] text-neutral-500">Live-Abtastung aller {metrics.cpu.perCore.length} logischen Prozessorkerne</p>
             </div>
-          ) : (
-            <div className="py-2.5">
-              <span className="text-xs text-neutral-500 font-normal">Keine kompatible GPU erkannt</span>
+            <span className="text-[11px] font-mono text-neutral-400">
+              Durchschnitt: {formatPercent(metrics.cpu.totalPercent.value)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 lg:grid-cols-16 gap-2">
+            {metrics.cpu.perCore.map((core, idx) => {
+              const val = core.value ?? 0;
+              return (
+                <div key={idx} className="bg-[#121212] border border-[#262626] rounded p-2 text-center">
+                  <div className="flex items-center justify-between text-[10px] font-mono mb-1 text-neutral-400">
+                    <span>C{idx}</span>
+                    <span className={val > 80 ? 'text-rose-400 font-bold' : 'text-neutral-300'}>{val.toFixed(0)}%</span>
+                  </div>
+                  <div className="w-full bg-[#202020] h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-200 rounded-full ${
+                        val > 80 ? 'bg-rose-500' : val > 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${Math.min(100, Math.max(0, val))}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Secondary Metrics (Quiet, cohesive bar) */}
+      {(prefs.showDockerOverview || prefs.showLoadAvg || (prefs.showThermals && (hasSensors || prefs.preset === 'pro')) || (prefs.showGPU && (primaryGPU || prefs.preset === 'pro'))) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Docker Status */}
+          {prefs.showDockerOverview && (
+            <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+              <span className="text-xs font-medium text-neutral-400 block mb-2">Docker Engine</span>
+              <div className="grid grid-cols-3 gap-2 mt-2 text-center font-mono">
+                <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+                  <span className="text-[11px] text-neutral-500 block font-normal font-sans">Laufend</span>
+                  <span className="text-sm font-semibold tabular-nums text-emerald-400">{counts.running}</span>
+                </div>
+                <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+                  <span className="text-[11px] text-neutral-500 block font-normal font-sans">Gestoppt</span>
+                  <span className="text-sm font-semibold tabular-nums text-neutral-400">{counts.stopped}</span>
+                </div>
+                <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+                  <span className="text-[11px] text-neutral-500 block font-normal font-sans">Problem</span>
+                  <span className="text-sm font-semibold tabular-nums text-rose-400">{counts.unhealthy}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Load Average */}
+          {prefs.showLoadAvg && (
+            <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-medium">Load Average</span>
+                <span className="text-[11px] text-neutral-500 font-mono">1m · 5m · 15m</span>
+              </div>
+              <div className="flex items-center justify-between text-white mt-3">
+                <div>
+                  <span className="text-[10px] text-neutral-500 block font-normal font-sans">1 min</span>
+                  <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg1.value?.toFixed(2) ?? '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-neutral-500 block font-normal font-sans">5 min</span>
+                  <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg5.value?.toFixed(2) ?? '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-neutral-500 block font-normal font-sans">15 min</span>
+                  <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg15.value?.toFixed(2) ?? '—'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Systemtemperaturen (Multi-Sensor) */}
+          {prefs.showThermals && (
+            <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+              <div className="flex items-center justify-between text-neutral-400 mb-2">
+                <span className="text-xs font-medium">Systemtemperatur</span>
+                <Thermometer className="w-3.5 h-3.5 text-neutral-500" />
+              </div>
+              {hasSensors ? (
+                <div className="space-y-2 mt-1">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xl font-semibold text-white font-mono">
+                      {metrics?.thermal?.cpuTemp.value ? `${metrics.thermal.cpuTemp.value} °C` : '—'}
+                    </span>
+                    <span className="text-[11px] text-neutral-400 font-mono">CPU Package</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {nvmeSensors.slice(0, 2).map((s, idx) => (
+                      <span key={idx} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#121212] border border-[#262626] text-neutral-300">
+                        {s.name}: {s.tempC.value}°C
+                      </span>
+                    ))}
+                    {mbSensors.slice(0, 1).map((s, idx) => (
+                      <span key={idx} className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#121212] border border-[#262626] text-neutral-300">
+                        Board: {s.tempC.value}°C
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="py-2 text-xs text-neutral-500 font-mono">
+                  <span>Keine Host-Sensoren erkannt</span>
+                  <span className="block text-[10px] text-neutral-600 mt-0.5">Uptime: {formatUptime(metrics?.system.uptimeSeconds.value)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* GPU Telemetry Preview (Smart Auto-Hide when no GPU) */}
+          {prefs.showGPU && (
+            <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+              <span className="text-xs font-medium text-neutral-400 block mb-2">GPU Telemetrie</span>
+              {primaryGPU ? (
+                <div>
+                  <div className="flex items-baseline gap-2 mt-2">
+                    <span className="text-xl font-semibold tracking-tight text-white tabular-nums font-mono">
+                      {formatPercent(primaryGPU.utilizationPercent.value)}
+                    </span>
+                    <span className="text-xs text-neutral-500 font-normal">Auslastung</span>
+                  </div>
+                  <p className="text-xs text-neutral-500 mt-2 font-normal truncate">
+                    {primaryGPU.model} {primaryGPU.temperatureCelsius.value ? `(${primaryGPU.temperatureCelsius.value}°C)` : ''}
+                  </p>
+                </div>
+              ) : (
+                <div className="py-2.5">
+                  <span className="text-xs text-neutral-500 font-normal">Keine kompatible GPU erkannt</span>
+                </div>
+              )}
             </div>
           )}
         </div>
+      )}
 
-        {/* Docker Overview Summary */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
-          <span className="text-xs font-medium text-neutral-400 block mb-2">Docker Engine</span>
-          <div className="grid grid-cols-3 gap-2 mt-2 text-center font-mono">
-            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
-              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Laufend</span>
-              <span className="text-sm font-semibold tabular-nums text-emerald-400">{counts.running}</span>
-            </div>
-            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
-              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Gestoppt</span>
-              <span className="text-sm font-semibold tabular-nums text-neutral-400">{counts.stopped}</span>
-            </div>
-            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
-              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Problem</span>
-              <span className="text-sm font-semibold tabular-nums text-rose-400">{counts.unhealthy}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Live Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Live Charts Section (Togglable) */}
+      {prefs.showCharts && (
         {/* CPU & RAM Live Chart */}
         <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
           <div className="flex items-center justify-between mb-4">
@@ -323,6 +518,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <thead>
               <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold">
                 <th className="pb-3 px-3 font-semibold">Container</th>
+                <th className="pb-3 px-3 font-semibold">Web / Ports</th>
                 <th className="pb-3 px-3 font-semibold">Status</th>
                 <th className="pb-3 px-3 font-semibold">CPU</th>
                 <th className="pb-3 px-3 font-semibold">RAM</th>
@@ -333,7 +529,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <tbody className="divide-y divide-[#1f1f1f]">
               {containers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-neutral-500 font-normal">
+                  <td colSpan={7} className="py-8 text-center text-neutral-500 font-normal">
                     Keine Container auf diesem Server gefunden.
                   </td>
                 </tr>
@@ -348,6 +544,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-white text-[13px] hover:underline">{c.name}</span>
                         <span className="text-[10px] text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-[#1c1c1c] border border-[#2a2a2a]">{c.shortId}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-wrap gap-1 items-center">
+                        {c.ports.filter((p) => p.publicPort).slice(0, 2).map((p, idx) => (
+                          <a
+                            key={idx}
+                            href={`http://${window.location.hostname}:${p.publicPort}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-[#1c1c1c] border border-[#2a2a2a] text-blue-400 hover:border-blue-500/70 hover:bg-blue-950/20 transition-colors"
+                            title={`Web-App in neuem Tab öffnen: :${p.publicPort}`}
+                          >
+                            <span>:{p.publicPort}</span>
+                            <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                          </a>
+                        ))}
+                        {c.ports.filter((p) => p.publicPort).length === 0 && (
+                          <span className="text-neutral-600 font-mono text-[11px]">—</span>
+                        )}
                       </div>
                     </td>
                     <td className="py-3 px-3">

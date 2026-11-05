@@ -8,8 +8,9 @@ interface MetricCardProps {
   gauge?: Gauge;
   formattedValue?: string;
   unit?: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   icon?: React.ReactNode;
+  headerRight?: React.ReactNode;
   progressPercent?: number;
   className?: string;
   alertThresholdExceeded?: boolean;
@@ -22,6 +23,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   unit,
   subtitle,
   icon,
+  headerRight,
   progressPercent,
   className,
   alertThresholdExceeded,
@@ -40,7 +42,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     >
       <div className="flex items-center justify-between text-neutral-400 mb-2">
         <span className="text-xs font-medium text-neutral-400">{title}</span>
-        {icon && <div className="text-neutral-500">{icon}</div>}
+        <div className="flex items-center gap-1.5">
+          {headerRight}
+          {icon && <div className="text-neutral-500">{icon}</div>}
+        </div>
       </div>
 
       <div className="flex items-baseline gap-1 my-1">
@@ -81,7 +86,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         </div>
       )}
 
-      {subtitle && <p className="text-xs text-neutral-500 mt-2 font-normal truncate">{subtitle}</p>}
+      {subtitle && <div className="text-xs text-neutral-400 mt-2 font-normal truncate">{subtitle}</div>}
     </div>
   );
 };

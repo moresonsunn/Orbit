@@ -44,11 +44,12 @@ type Collector struct {
 	prevCoreCPUs   []cpuTimeSample
 	prevIfaces     map[string]ifaceSample
 	prevDisks      map[string]diskSample
-	cachedHostname string
-	cachedOS       string
-	cachedKernel   string
-	cachedCores    int
-	cachedThreads  int
+	cachedHostname  string
+	cachedOS        string
+	cachedKernel    string
+	cachedModelName string
+	cachedCores     int
+	cachedThreads   int
 }
 
 func NewCollector(cfg *config.Config, log *slog.Logger) *Collector {
@@ -113,13 +114,21 @@ func (c *Collector) initStaticInfo() {
 	c.cachedThreads = runtime.NumCPU()
 	c.cachedCores = c.cachedThreads
 
-	// Try counting physical cores from /proc/cpuinfo
+	// Try counting physical cores and extracting model name from /proc/cpuinfo
 	if content, err := os.ReadFile(c.procPath("cpuinfo")); err == nil {
 		scanner := bufio.NewScanner(strings.NewReader(string(content)))
 		coresMap := make(map[string]bool)
 		var curPhysical, curCore string
 		for scanner.Scan() {
 			line := strings.TrimSpace(scanner.Text())
+			if c.cachedModelName == "" {
+				if strings.HasPrefix(line, "model name") || strings.HasPrefix(line, "Processor") || strings.HasPrefix(line, "Hardware") {
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						c.cachedModelName = strings.TrimSpace(parts[1])
+					}
+				}
+			}
 			if strings.HasPrefix(line, "physical id") {
 				curPhysical = line
 			} else if strings.HasPrefix(line, "core id") {
@@ -148,13 +157,20 @@ func (c *Collector) Collect(ctx context.Context) HostMetrics {
 		}
 	}
 
+	thermal := c.collectThermal()
+	cpu := c.collectCPU(dt)
+	if thermal.CPUTemp.Status == model.OK {
+		cpu.TempC = thermal.CPUTemp
+	}
+
 	metrics := HostMetrics{
 		Timestamp: now,
-		CPU:       c.collectCPU(dt),
+		CPU:       cpu,
 		Memory:    c.collectMemory(),
 		Swap:      c.collectSwap(),
 		Storage:   c.collectStorage(dt),
 		Network:   c.collectNetwork(dt),
+		Thermal:   thermal,
 		System:    c.collectSystem(),
 	}
 
@@ -164,6 +180,7 @@ func (c *Collector) Collect(ctx context.Context) HostMetrics {
 
 func (c *Collector) collectCPU(dt float64) CPUMetrics {
 	m := CPUMetrics{
+		ModelName:    c.cachedModelName,
 		Cores:        c.cachedCores,
 		Threads:      c.cachedThreads,
 		TotalPercent: model.NA(model.Unavailable, "no cpu stats available"),
@@ -244,11 +261,26 @@ func (c *Collector) collectCPU(dt float64) CPUMetrics {
 		if khz, err := strconv.ParseFloat(strings.TrimSpace(string(content)), 64); err == nil && khz > 0 {
 			m.FreqMHz = model.Val(round2(khz / 1000.0))
 		}
+	} else {
+		// Fallback for containers/WSL2: read "cpu MHz" from /proc/cpuinfo
+		if content, err := os.ReadFile(c.procPath("cpuinfo")); err == nil {
+			scanner := bufio.NewScanner(strings.NewReader(string(content)))
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				if strings.HasPrefix(line, "cpu MHz") {
+					parts := strings.SplitN(line, ":", 2)
+					if len(parts) == 2 {
+						if mhz, err := strconv.ParseFloat(strings.TrimSpace(parts[1]), 64); err == nil && mhz > 0 {
+							m.FreqMHz = model.Val(round2(mhz))
+							break
+						}
+					}
+				}
+			}
+		}
 	}
 
-	// 4. Read CPU Temperature from /sys/class/hwmon/hwmon*/temp1_input or /sys/class/thermal/thermal_zone0/temp
-	m.TempC = c.readCPUTemp()
-
+	// 4. CPU Temperature is populated by collectThermal() in Collect()
 	return m
 }
 
@@ -273,28 +305,162 @@ func parseCPUFields(raw string) (cpuTimeSample, bool) {
 	return cpuTimeSample{idle: idle, total: total}, true
 }
 
-func (c *Collector) readCPUTemp() model.Gauge {
+func (c *Collector) collectThermal() ThermalMetrics {
+	tm := ThermalMetrics{
+		CPUTemp: model.NA(model.Unavailable, "no cpu thermal sensor detected"),
+		MaxTemp: model.NA(model.Unavailable, "no thermal sensor detected"),
+		Sensors: []ThermalSensor{},
+	}
+
+	var maxVal float64 = -1
+	var cpuFound bool
+
+	// 1. Scan Linux hwmon subsystem: /sys/class/hwmon/hwmon*
 	hwmonBase := c.sysPath("class/hwmon")
-	entries, err := os.ReadDir(hwmonBase)
-	if err == nil {
+	if entries, err := os.ReadDir(hwmonBase); err == nil {
 		for _, entry := range entries {
-			tempFile := filepath.Join(hwmonBase, entry.Name(), "temp1_input")
-			if content, err := os.ReadFile(tempFile); err == nil {
-				if milliC, err := strconv.ParseFloat(strings.TrimSpace(string(content)), 64); err == nil && milliC > 0 {
-					return model.Val(round2(milliC / 1000.0))
+			devDir := filepath.Join(hwmonBase, entry.Name())
+			devName := entry.Name()
+			if nameContent, err := os.ReadFile(filepath.Join(devDir, "name")); err == nil {
+				devName = strings.TrimSpace(string(nameContent))
+			}
+
+			lowerName := strings.ToLower(devName)
+			var sensorType string
+			if strings.Contains(lowerName, "k10temp") || strings.Contains(lowerName, "zenpower") || strings.Contains(lowerName, "coretemp") || strings.Contains(lowerName, "cpu") {
+				sensorType = "cpu"
+			} else if strings.Contains(lowerName, "nvme") {
+				sensorType = "nvme"
+			} else if strings.Contains(lowerName, "acpitz") || strings.Contains(lowerName, "pch") || strings.Contains(lowerName, "it87") || strings.Contains(lowerName, "nct") {
+				sensorType = "motherboard"
+			} else {
+				sensorType = "system"
+			}
+
+			files, err := os.ReadDir(devDir)
+			if err != nil {
+				continue
+			}
+
+			for _, file := range files {
+				fileName := file.Name()
+				if strings.HasPrefix(fileName, "temp") && strings.HasSuffix(fileName, "_input") {
+					prefix := strings.TrimSuffix(fileName, "_input") // e.g. "temp1"
+					inputPath := filepath.Join(devDir, fileName)
+
+					valBytes, err := os.ReadFile(inputPath)
+					if err != nil {
+						continue
+					}
+
+					milliC, err := strconv.ParseFloat(strings.TrimSpace(string(valBytes)), 64)
+					if err != nil || milliC <= 0 || milliC > 150000 {
+						continue
+					}
+
+					tempC := round2(milliC / 1000.0)
+
+					// Read label if available
+					label := devName
+					if labelBytes, err := os.ReadFile(filepath.Join(devDir, prefix+"_label")); err == nil {
+						l := strings.TrimSpace(string(labelBytes))
+						if l != "" {
+							label = l
+						}
+					}
+
+					// Read crit if available
+					var critGauge model.Gauge
+					if critBytes, err := os.ReadFile(filepath.Join(devDir, prefix+"_crit")); err == nil {
+						if critMilli, err := strconv.ParseFloat(strings.TrimSpace(string(critBytes)), 64); err == nil && critMilli > 0 {
+							critGauge = model.Val(round2(critMilli / 1000.0))
+						} else {
+							critGauge = model.NA(model.Unavailable, "no crit threshold")
+						}
+					} else {
+						critGauge = model.NA(model.Unavailable, "no crit threshold")
+					}
+
+					sensor := ThermalSensor{
+						Name:       devName,
+						Label:      label,
+						Device:     entry.Name(),
+						TempC:      model.Val(tempC),
+						CritC:      critGauge,
+						SensorType: sensorType,
+					}
+					tm.Sensors = append(tm.Sensors, sensor)
+
+					if tempC > maxVal {
+						maxVal = tempC
+						tm.MaxTemp = model.Val(maxVal)
+					}
+
+					if sensorType == "cpu" && (!cpuFound || strings.Contains(strings.ToLower(label), "package") || strings.Contains(strings.ToLower(label), "tctl")) {
+						tm.CPUTemp = model.Val(tempC)
+						cpuFound = true
+					}
 				}
 			}
 		}
 	}
 
-	thermalFile := c.sysPath("class/thermal/thermal_zone0/temp")
-	if content, err := os.ReadFile(thermalFile); err == nil {
-		if milliC, err := strconv.ParseFloat(strings.TrimSpace(string(content)), 64); err == nil && milliC > 0 {
-			return model.Val(round2(milliC / 1000.0))
+	// 2. Fallback to /sys/class/thermal/thermal_zone* (Common on ARM/Raspberry Pi/Debian)
+	if len(tm.Sensors) == 0 {
+		thermalBase := c.sysPath("class/thermal")
+		if tzEntries, err := os.ReadDir(thermalBase); err == nil {
+			for _, tz := range tzEntries {
+				if strings.HasPrefix(tz.Name(), "thermal_zone") {
+					tzDir := filepath.Join(thermalBase, tz.Name())
+					typeStr := tz.Name()
+					if typeBytes, err := os.ReadFile(filepath.Join(tzDir, "type")); err == nil {
+						t := strings.TrimSpace(string(typeBytes))
+						if t != "" {
+							typeStr = t
+						}
+					}
+
+					tempBytes, err := os.ReadFile(filepath.Join(tzDir, "temp"))
+					if err != nil {
+						continue
+					}
+
+					milliC, err := strconv.ParseFloat(strings.TrimSpace(string(tempBytes)), 64)
+					if err != nil || milliC <= 0 || milliC > 150000 {
+						continue
+					}
+
+					tempC := round2(milliC / 1000.0)
+					sensorType := "system"
+					if strings.Contains(strings.ToLower(typeStr), "cpu") || strings.Contains(strings.ToLower(typeStr), "x86_pkg") {
+						sensorType = "cpu"
+					}
+
+					sensor := ThermalSensor{
+						Name:       typeStr,
+						Label:      typeStr,
+						Device:     tz.Name(),
+						TempC:      model.Val(tempC),
+						CritC:      model.NA(model.Unavailable, "no crit threshold"),
+						SensorType: sensorType,
+					}
+					tm.Sensors = append(tm.Sensors, sensor)
+
+					if tempC > maxVal {
+						maxVal = tempC
+						tm.MaxTemp = model.Val(maxVal)
+					}
+
+					if sensorType == "cpu" || !cpuFound {
+						tm.CPUTemp = model.Val(tempC)
+						cpuFound = true
+					}
+				}
+			}
 		}
 	}
 
-	return model.NA(model.Unavailable, "no cpu temperature sensor found")
+	return tm
 }
 
 func (c *Collector) collectMemory() MemoryMetrics {
