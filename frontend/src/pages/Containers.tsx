@@ -109,30 +109,30 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151b26] p-3 rounded-lg border border-[#232d3f]">
         <div className="flex items-center gap-2 flex-1 max-w-md">
           <div className="relative w-full">
-            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Container nach Name, Image oder ID durchsuchen..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20"
+              placeholder="Container nach Name, Image oder ID filtern..."
+              className="w-full pl-9 pr-4 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20"
             />
           </div>
         </div>
 
         {/* State Filter Tabs */}
-        <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-[#0e121b] p-1 rounded-md border border-[#232d3f] self-start sm:self-auto">
           {(['all', 'running', 'stopped', 'unhealthy'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterState(tab)}
-              className={`px-3 py-1 rounded-lg text-xs font-medium capitalize transition-all ${
+              className={`px-2.5 py-1 rounded text-xs font-medium capitalize transition-all ${
                 filterState === tab
-                  ? 'bg-slate-800/90 text-white border border-slate-700/60 shadow-xs'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-[#1c2433] text-blue-400 border border-[#2d3a4f] shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               {tab === 'all'
@@ -149,7 +149,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
 
       {/* Bulk Action Bar (visible when items selected) */}
       {selectedIDs.length > 0 && (
-        <div className="flex items-center justify-between bg-[#0f1422] border border-slate-700/80 p-3 rounded-xl shadow-md animate-in slide-in-from-top-2 duration-200">
+        <div className="flex items-center justify-between bg-[#151b26] border border-blue-500/40 p-3 rounded-lg shadow-md animate-in slide-in-from-top-2 duration-200">
           <span className="text-xs font-medium text-slate-200">
             {selectedIDs.length} Container ausgewählt
           </span>
@@ -157,7 +157,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             <button
               onClick={() => setActiveModal({ action: 'bulk-start' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-md text-xs font-medium transition-all shadow-xs"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Starten</span>
@@ -165,7 +165,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             <button
               onClick={() => setActiveModal({ action: 'bulk-stop' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-40 text-white rounded-md text-xs font-medium transition-all shadow-xs"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
               <span>Stoppen</span>
@@ -173,14 +173,14 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             <button
               onClick={() => setActiveModal({ action: 'bulk-restart' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/90 hover:bg-blue-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/90 hover:bg-blue-600 disabled:opacity-40 text-white rounded-md text-xs font-medium transition-all shadow-xs"
             >
               <RotateCw className="w-3.5 h-3.5" />
               <span>Neustarten</span>
             </button>
             <button
               onClick={() => setSelectedIDs([])}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition-colors"
+              className="px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-slate-300 rounded-md text-xs font-medium transition-colors"
             >
               Auswahl aufheben
             </button>
@@ -189,35 +189,35 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
       )}
 
       {/* Main Container Table */}
-      <div className="overflow-hidden rounded-xl bg-[#0f1422]/80 border border-slate-800/80 shadow-xs">
+      <div className="overflow-hidden rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800/80 text-slate-400 uppercase tracking-wider text-[11px] font-medium bg-slate-950/40">
-                <th className="py-3 px-4 w-8">
+              <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider text-[11px] font-medium bg-[#0e121b]/60">
+                <th className="py-2.5 px-4 w-8">
                   <button onClick={toggleSelectAll} className="text-slate-400 hover:text-white">
                     {selectedIDs.length > 0 && selectedIDs.length === filtered.length ? (
-                      <CheckSquare className="w-4 h-4 text-sky-400" />
+                      <CheckSquare className="w-4 h-4 text-blue-400" />
                     ) : (
                       <UncheckedSquare className="w-4 h-4" />
                     )}
                   </button>
                 </th>
-                <th className="py-3 px-3 font-medium">Container</th>
-                <th className="py-3 px-3 font-medium">Status</th>
-                <th className="py-3 px-3 font-medium">CPU</th>
-                <th className="py-3 px-3 font-medium">RAM</th>
-                <th className="py-3 px-3 font-medium">Netzwerk</th>
-                <th className="py-3 px-3 font-medium">Disk I/O</th>
-                <th className="py-3 px-3 font-medium">Uptime</th>
-                <th className="py-3 px-3 font-medium">Ports</th>
-                <th className="py-3 px-4 font-medium text-right">Aktionen</th>
+                <th className="py-2.5 px-3 font-medium">Container</th>
+                <th className="py-2.5 px-3 font-medium">Status</th>
+                <th className="py-2.5 px-3 font-medium">CPU</th>
+                <th className="py-2.5 px-3 font-medium">RAM</th>
+                <th className="py-2.5 px-3 font-medium">Netzwerk</th>
+                <th className="py-2.5 px-3 font-medium">Disk I/O</th>
+                <th className="py-2.5 px-3 font-medium">Uptime</th>
+                <th className="py-2.5 px-3 font-medium">Ports</th>
+                <th className="py-2.5 px-4 font-medium text-right">Aktionen</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/50">
+            <tbody className="divide-y divide-[#232d3f]/60">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-8 text-center text-slate-400">
+                  <td colSpan={10} className="py-8 text-center text-slate-500">
                     Keine passenden Container gefunden.
                   </td>
                 </tr>
@@ -230,27 +230,27 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                     <tr
                       key={c.id}
                       onClick={() => onSelectContainer(c.id)}
-                      className={`hover:bg-slate-800/40 cursor-pointer transition-colors ${
-                        isSelected ? 'bg-cyan-950/20' : ''
+                      className={`hover:bg-[#1a2230] cursor-pointer transition-colors ${
+                        isSelected ? 'bg-blue-950/20' : ''
                       }`}
                     >
                       <td className="py-3 px-4" onClick={(e) => toggleSelect(c.id, e)}>
                         {isSelected ? (
-                          <CheckSquare className="w-4 h-4 text-cyan-400" />
+                          <CheckSquare className="w-4 h-4 text-blue-400" />
                         ) : (
-                          <UncheckedSquare className="w-4 h-4 text-slate-400" />
+                          <UncheckedSquare className="w-4 h-4 text-slate-500 hover:text-slate-300" />
                         )}
                       </td>
                       <td className="py-3 px-3">
                         <div className="flex flex-col">
-                          <span className="font-bold text-white text-sm hover:text-cyan-400 transition-colors">
+                          <span className="font-semibold text-slate-100 text-sm hover:text-blue-400 transition-colors">
                             {c.name}
                           </span>
                           <span className="text-[10px] text-slate-400 font-mono truncate max-w-[180px]">
                             {c.imageRepo}:{c.imageTag}
                           </span>
                           {c.composeProject && (
-                            <span className="text-[9px] text-indigo-400 font-mono mt-0.5">
+                            <span className="text-[9px] text-blue-400 font-mono mt-0.5">
                               Compose: {c.composeProject}
                             </span>
                           )}
@@ -305,15 +305,15 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                       </td>
                       <td className="py-3 px-3 font-mono text-xs">
                         {c.ports.length === 0 ? (
-                          <span className="text-slate-400">—</span>
+                          <span className="text-slate-500">—</span>
                         ) : (
                           <div className="max-w-[140px] truncate" title={c.ports.map((p) => `${p.publicPort || ''}:${p.privatePort}/${p.protocol}`).join(', ')}>
                             {c.ports.slice(0, 2).map((p, i) => (
-                              <span key={i} className="inline-block bg-slate-800 px-1.5 py-0.5 rounded text-[10px] mr-1 text-slate-300">
+                              <span key={i} className="inline-block bg-[#0e121b] border border-[#232d3f] px-1.5 py-0.5 rounded text-[10px] mr-1 text-slate-300">
                                 {p.publicPort ? `${p.publicPort}:` : ''}{p.privatePort}
                               </span>
                             ))}
-                            {c.ports.length > 2 && <span className="text-slate-400 text-[10px]">+{c.ports.length - 2}</span>}
+                            {c.ports.length > 2 && <span className="text-slate-500 text-[10px]">+{c.ports.length - 2}</span>}
                           </div>
                         )}
                       </td>
@@ -324,7 +324,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                               <button
                                 onClick={() => setActiveModal({ action: 'restart', targetId: c.id, targetName: c.name })}
                                 disabled={!actionsEnabled}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                className="p-1.5 rounded-md text-slate-400 hover:text-blue-400 hover:bg-[#1c2433] disabled:opacity-30 transition-colors"
                                 title="Neustarten"
                               >
                                 <RotateCw className="w-3.5 h-3.5" />
@@ -332,7 +332,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                               <button
                                 onClick={() => setActiveModal({ action: 'stop', targetId: c.id, targetName: c.name })}
                                 disabled={!actionsEnabled}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                className="p-1.5 rounded-md text-slate-400 hover:text-amber-400 hover:bg-[#1c2433] disabled:opacity-30 transition-colors"
                                 title="Stoppen"
                               >
                                 <Square className="w-3.5 h-3.5" />
@@ -342,7 +342,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                             <button
                               onClick={() => setActiveModal({ action: 'start', targetId: c.id, targetName: c.name })}
                               disabled={!actionsEnabled}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                              className="p-1.5 rounded-md text-slate-400 hover:text-emerald-400 hover:bg-[#1c2433] disabled:opacity-30 transition-colors"
                               title="Starten"
                             >
                               <Play className="w-3.5 h-3.5 fill-current" />
@@ -350,7 +350,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                           )}
                           <button
                             onClick={() => onSelectContainer(c.id)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-blue-400 hover:bg-[#1c2433] transition-colors"
                             title="Details öffnen"
                           >
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -358,7 +358,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
                           <button
                             onClick={() => setActiveModal({ action: 'remove', targetId: c.id, targetName: c.name })}
                             disabled={!destructiveEnabled}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                            className="p-1.5 rounded-md text-slate-400 hover:text-rose-400 hover:bg-[#1c2433] disabled:opacity-30 transition-colors"
                             title="Container löschen"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

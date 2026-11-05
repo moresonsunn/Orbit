@@ -56,13 +56,13 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-cyan-950/60 border border-cyan-800/60 text-cyan-400">
-            <Terminal className="w-5 h-5" />
+          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
+            <Terminal className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Zentraler Log-Viewer</h3>
+            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Zentraler Log-Viewer</h3>
             <p className="text-xs text-slate-400 font-mono mt-0.5">
               Live-Ausgabe sämtlicher Container mit Suche und Export
             </p>
@@ -74,7 +74,7 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
           <select
             value={selectedId}
             onChange={(e) => setSelectedId(e.target.value)}
-            className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
+            className="px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-xs font-mono text-slate-200 focus:outline-none focus:border-blue-500"
           >
             {containers.map((c) => (
               <option key={c.id} value={c.id}>
@@ -86,7 +86,7 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
           <select
             value={tail}
             onChange={(e) => setTail(e.target.value)}
-            className="px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-cyan-500"
+            className="px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-xs font-mono text-slate-200 focus:outline-none focus:border-blue-500"
           >
             <option value="100">100 Zeilen</option>
             <option value="250">250 Zeilen</option>
@@ -97,7 +97,7 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
           <button
             onClick={loadLogs}
             disabled={loading}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="p-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-slate-300 transition-colors"
             title="Aktualisieren"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -106,22 +106,22 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
       </div>
 
       {/* Terminal View */}
-      <div className="rounded-2xl bg-[#060911] border border-slate-800/80 overflow-hidden flex flex-col h-[560px] shadow-2xl">
-        <div className="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between gap-3">
+      <div className="rounded-lg bg-[#0e121b] border border-[#232d3f] overflow-hidden flex flex-col h-[560px] shadow-xs">
+        <div className="p-3 bg-[#151b26] border-b border-[#232d3f] flex items-center justify-between gap-3">
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 absolute left-3 top-2 text-slate-400" />
+            <Search className="w-4 h-4 absolute left-3 top-2 text-slate-500" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Logs filtern..."
-              className="w-full pl-9 pr-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500 font-mono"
+              className="w-full pl-9 pr-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 font-mono"
             />
           </div>
 
           <button
             onClick={downloadLogs}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 transition-colors font-mono"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs text-slate-300 transition-colors font-mono"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Exportieren</span>

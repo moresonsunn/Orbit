@@ -58,13 +58,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
 
   return (
     <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-slate-800 border border-slate-700 text-cyan-400">
-            <SettingsIcon className="w-5 h-5" />
+          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
+            <SettingsIcon className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Plattform-Einstellungen</h3>
+            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Plattform-Einstellungen</h3>
             <p className="text-xs text-slate-400 font-mono mt-0.5">
               Abtastraten, Warnschwellen, Datenaufbewahrung und Feature-Flags
             </p>
@@ -75,63 +75,63 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white rounded-xl text-xs font-semibold transition-all shadow-md shadow-cyan-950/50"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-all shadow-xs"
           >
-            {savedSuccess ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+            {savedSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
             <span>{savedSuccess ? 'Gespeichert!' : saving ? 'Wird gespeichert...' : 'Änderungen speichern'}</span>
           </button>
         )}
       </div>
 
       {error && (
-        <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300">
+        <div className="p-3 bg-rose-950/40 border border-rose-800/60 rounded-md text-xs text-rose-300">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Feature Flags Overview */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider font-mono">
-            <ShieldAlert className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-3">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+            <ShieldAlert className="w-4 h-4 text-blue-400" />
             <span>Aktive Feature-Flags (Host-Umgebung)</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
               <span className="text-slate-400 block text-[10px]">Aktionen (Actions)</span>
               <span
-                className={`font-bold ${
-                  authStatus?.features.enableActions ? 'text-emerald-400' : 'text-slate-400'
+                className={`font-semibold ${
+                  authStatus?.features.enableActions ? 'text-emerald-400' : 'text-slate-500'
                 }`}
               >
                 {authStatus?.features.enableActions ? 'Aktiviert' : 'Gesperrt (Read-only)'}
               </span>
             </div>
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
               <span className="text-slate-400 block text-[10px]">Destruktiv (Delete/Prune)</span>
               <span
-                className={`font-bold ${
-                  authStatus?.features.enableDestructive ? 'text-emerald-400' : 'text-slate-400'
+                className={`font-semibold ${
+                  authStatus?.features.enableDestructive ? 'text-emerald-400' : 'text-slate-500'
                 }`}
               >
                 {authStatus?.features.enableDestructive ? 'Aktiviert' : 'Gesperrt'}
               </span>
             </div>
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
               <span className="text-slate-400 block text-[10px]">eBPF Modus</span>
-              <span className="text-cyan-400 font-bold uppercase">{authStatus?.features.ebpfMode || 'auto'}</span>
+              <span className="text-blue-400 font-semibold uppercase">{authStatus?.features.ebpfMode || 'auto'}</span>
             </div>
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
               <span className="text-slate-400 block text-[10px]">GPU Modus</span>
-              <span className="text-indigo-400 font-bold uppercase">{authStatus?.features.gpuMode || 'auto'}</span>
+              <span className="text-indigo-400 font-semibold uppercase">{authStatus?.features.gpuMode || 'auto'}</span>
             </div>
           </div>
         </div>
 
         {/* Intervals */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider font-mono">
-            <Clock className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+            <Clock className="w-4 h-4 text-blue-400" />
             <span>Echtzeit-Abtastintervalle (Millisekunden)</span>
           </div>
 
@@ -148,7 +148,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, hostMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -163,7 +163,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, containerMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -178,7 +178,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, gpuMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -193,16 +193,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, netflowMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
           </div>
         </div>
 
         {/* Alert Thresholds */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider font-mono">
-            <Bell className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+            <Bell className="w-4 h-4 text-blue-400" />
             <span>Schwellenwerte für Warnungen (Alerts)</span>
           </div>
 
@@ -222,7 +222,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -240,7 +240,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -258,7 +258,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -276,16 +276,16 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
           </div>
         </div>
 
         {/* Retention */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-white uppercase tracking-wider font-mono">
-            <Database className="w-4 h-4 text-cyan-400" />
+        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
+            <Database className="w-4 h-4 text-blue-400" />
             <span>SQLite Historien-Aufbewahrung (Retention)</span>
           </div>
 
@@ -302,7 +302,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, rawHours: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -317,7 +317,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, days5m: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
             <div>
@@ -332,7 +332,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, days1h: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white focus:outline-none focus:border-cyan-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
               />
             </div>
           </div>

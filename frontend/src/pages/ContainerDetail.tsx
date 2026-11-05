@@ -127,18 +127,18 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Top Bar with Container Info & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0f1422]/80 p-4 rounded-xl border border-slate-800/80 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#151b26] p-4 rounded-lg border border-[#232d3f] shadow-xs">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80 transition-colors"
+            className="p-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] text-slate-400 hover:text-white hover:bg-[#1c2433] transition-colors"
             title="Zurück zur Liste"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-white tracking-tight">{c.name}</h2>
+              <h2 className="text-base font-semibold text-slate-100 tracking-tight">{c.name}</h2>
               <StatusBadge status={c.state} />
               {c.health && c.health !== 'none' && <StatusBadge status={c.health} />}
             </div>
@@ -159,7 +159,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                   loadData();
                 }}
                 disabled={!actionsEnabled}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] disabled:opacity-30 text-slate-200 rounded-md text-xs font-medium transition-colors"
               >
                 <RotateCw className="w-3.5 h-3.5" />
                 <span>Neustarten</span>
@@ -171,7 +171,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                   loadData();
                 }}
                 disabled={!actionsEnabled}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-30 text-white rounded-md text-xs font-medium transition-colors"
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
                 <span>Stoppen</span>
@@ -185,7 +185,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                 loadData();
               }}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-30 text-white rounded-md text-xs font-medium transition-colors"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Starten</span>
@@ -195,7 +195,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       </div>
 
       {/* Detail Navigation Tabs */}
-      <div className="flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-[#232d3f] pb-2">
         {[
           { id: 'overview', label: 'Overview', icon: Info },
           { id: 'performance', label: 'Performance', icon: Activity },
@@ -209,13 +209,13 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-slate-800/90 text-white border border-slate-700/60 shadow-xs'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent'
+                  ? 'bg-[#1c2433] text-blue-400 border border-[#2d3a4f] shadow-xs'
+                  : 'text-slate-400 hover:text-white hover:bg-[#151b26] border border-transparent'
               }`}
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-400' : 'text-slate-400'}`} />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-blue-400' : 'text-slate-500'}`} />
               <span>{tab.label}</span>
             </button>
           );
@@ -225,62 +225,62 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       {/* Tab Content */}
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-3">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Container Details</h3>
+          <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-3">
+            <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">Container Details</h3>
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Status</span>
-                <span className="font-mono text-white font-bold">{c.state}</span>
+                <span className="font-mono text-slate-200 font-semibold">{c.state}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Erstellt am</span>
-                <span className="font-mono text-white">{formatDate(c.created)}</span>
+                <span className="font-mono text-slate-200">{formatDate(c.created)}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Zuletzt gestartet</span>
-                <span className="font-mono text-white">{formatDate(c.startedAt)}</span>
+                <span className="font-mono text-slate-200">{formatDate(c.startedAt)}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Laufzeit</span>
-                <span className="font-mono text-emerald-400 font-bold">
+                <span className="font-mono text-emerald-400 font-medium">
                   {c.startedAt ? formatUptime(Math.floor((Date.now() - new Date(c.startedAt).getTime()) / 1000)) : '—'}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Neustarts</span>
-                <span className="font-mono text-white">{c.restartCount}</span>
+                <span className="font-mono text-slate-200">{c.restartCount}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Restart Policy</span>
-                <span className="font-mono text-white">{c.restartPolicy}</span>
+                <span className="font-mono text-slate-200">{c.restartPolicy}</span>
               </div>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-3">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Resource Limits</h3>
+          <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-3">
+            <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">Resource Limits</h3>
             <div className="space-y-2 text-xs">
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">CPU Limit</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-slate-200">
                   {c.limits.cpus > 0 ? `${c.limits.cpus} Kerne` : 'Unbegrenzt'}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">RAM Limit</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-slate-200">
                   {c.limits.memoryBytes > 0 ? formatBytes(c.limits.memoryBytes) : 'Unbegrenzt (Host-RAM)'}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">PID Limit</span>
-                <span className="font-mono text-white">
+                <span className="font-mono text-slate-200">
                   {c.limits.pidsLimit > 0 ? c.limits.pidsLimit : 'Unbegrenzt'}
                 </span>
               </div>
-              <div className="flex justify-between py-1 border-b border-slate-800/60">
+              <div className="flex justify-between py-1.5 border-b border-[#232d3f]/60">
                 <span className="text-slate-400">Privilegiert</span>
-                <span className="font-mono text-white">{c.privileged ? 'Ja' : 'Nein'}</span>
+                <span className="font-mono text-slate-200">{c.privileged ? 'Ja' : 'Nein'}</span>
               </div>
             </div>
           </div>
@@ -289,8 +289,8 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
 
       {activeTab === 'performance' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">
+          <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
+            <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono mb-3">
               CPU Auslastung ({stats?.cpuPercent.value !== null && stats?.cpuPercent.value !== undefined ? formatPercent(stats.cpuPercent.value) : '—'})
             </h3>
             <div className="h-56">
@@ -298,15 +298,15 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                 <AreaChart data={chartData}>
                   <XAxis dataKey="time" stroke="#475569" fontSize={10} />
                   <YAxis stroke="#475569" fontSize={10} unit="%" />
-                  <Tooltip contentStyle={{ backgroundColor: '#090d16', borderColor: '#1e293b', fontSize: '12px' }} />
-                  <Area type="monotone" dataKey="cpu" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.2} isAnimationActive={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0e121b', borderColor: '#232d3f', fontSize: '11px', color: '#e2e8f0' }} />
+                  <Area type="monotone" dataKey="cpu" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-            <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono mb-3">
+          <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
+            <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono mb-3">
               RAM Verbrauch ({formatBytes(stats?.memUsage.value)})
             </h3>
             <div className="h-56">
@@ -314,8 +314,8 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                 <AreaChart data={chartData}>
                   <XAxis dataKey="time" stroke="#475569" fontSize={10} />
                   <YAxis stroke="#475569" fontSize={10} unit="MB" />
-                  <Tooltip contentStyle={{ backgroundColor: '#090d16', borderColor: '#1e293b', fontSize: '12px' }} />
-                  <Area type="monotone" dataKey="ramMb" stroke="#6366f1" fill="#6366f1" fillOpacity={0.2} isAnimationActive={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0e121b', borderColor: '#232d3f', fontSize: '11px', color: '#e2e8f0' }} />
+                  <Area type="monotone" dataKey="ramMb" stroke="#6366f1" fill="#6366f1" fillOpacity={0.15} isAnimationActive={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -324,18 +324,18 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       )}
 
       {activeTab === 'network' && (
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">Netzwerk-Konfiguration</h3>
+        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
+          <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">Netzwerk-Konfiguration</h3>
           <div className="space-y-3">
             {c.networks.map((net, i) => (
-              <div key={i} className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+              <div key={i} className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f] flex justify-between items-center text-xs">
                 <div>
-                  <span className="font-bold text-cyan-400 block">{net.name}</span>
-                  <span className="text-slate-400 font-mono text-[10px]">Netzwerk-ID: {net.networkId.slice(0, 12)}</span>
+                  <span className="font-semibold text-blue-400 block">{net.name}</span>
+                  <span className="text-slate-500 font-mono text-[10px]">Netzwerk-ID: {net.networkId.slice(0, 12)}</span>
                 </div>
-                <div className="text-right font-mono text-white">
+                <div className="text-right font-mono text-slate-200">
                   <span>IP: {net.ipAddress || '—'}</span>
-                  {net.gateway && <span className="text-slate-400 block text-[10px]">Gateway: {net.gateway}</span>}
+                  {net.gateway && <span className="text-slate-500 block text-[10px]">Gateway: {net.gateway}</span>}
                 </div>
               </div>
             ))}
@@ -344,28 +344,28 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       )}
 
       {activeTab === 'logs' && (
-        <div className="rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden flex flex-col h-[520px]">
-          <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-3">
+        <div className="rounded-lg bg-[#0e121b] border border-[#232d3f] overflow-hidden flex flex-col h-[520px]">
+          <div className="p-3 bg-[#151b26] border-b border-[#232d3f] flex items-center justify-between gap-3">
             <div className="relative flex-1 max-w-sm">
-              <Search className="w-4 h-4 absolute left-3 top-2 text-slate-400" />
+              <Search className="w-4 h-4 absolute left-3 top-2 text-slate-500" />
               <input
                 type="text"
                 value={logSearch}
                 onChange={(e) => setLogSearch(e.target.value)}
                 placeholder="In Logs suchen..."
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+                className="w-full pl-9 pr-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={loadLogs}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors"
+                className="px-3 py-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs text-slate-300 transition-colors"
               >
                 Aktualisieren
               </button>
               <button
                 onClick={downloadLogs}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs text-slate-300 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Exportieren</span>
@@ -380,18 +380,18 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       )}
 
       {activeTab === 'inspect' && (
-        <div className="rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden">
-          <div className="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+        <div className="rounded-lg bg-[#0e121b] border border-[#232d3f] overflow-hidden">
+          <div className="p-3 bg-[#151b26] border-b border-[#232d3f] flex items-center justify-between">
             <span className="text-xs font-mono text-slate-400">Docker Inspect JSON</span>
             <button
               onClick={copyInspect}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs text-slate-300 transition-colors"
             >
               {copiedInspect ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               <span>{copiedInspect ? 'Kopiert' : 'Kopieren'}</span>
             </button>
           </div>
-          <pre className="p-4 font-mono text-xs text-cyan-300 overflow-x-auto max-h-[500px] leading-relaxed">
+          <pre className="p-4 font-mono text-xs text-slate-300 overflow-x-auto max-h-[500px] leading-relaxed">
             {JSON.stringify(data.inspect || data.raw, null, 2)}
           </pre>
         </div>

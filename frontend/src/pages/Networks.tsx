@@ -44,13 +44,13 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-950/60 border border-indigo-800/60 text-indigo-400">
-            <Globe className="w-5 h-5" />
+          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
+            <Globe className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Docker Networks</h3>
+            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Docker Networks</h3>
             <p className="text-xs text-slate-400 font-mono mt-0.5">
               Übersicht aller erkannten Docker-Netzwerktreiber und Subnetze
             </p>
@@ -66,21 +66,21 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
           return (
             <div
               key={net.Id}
-              className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700/80 transition-all shadow-sm space-y-3"
+              className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] hover:border-[#334155] transition-all shadow-xs space-y-3"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <span className="text-sm font-bold text-white block">{net.Name}</span>
-                  <span className="text-[10px] text-slate-400 font-mono">ID: {net.Id.slice(0, 12)}</span>
+                  <span className="text-sm font-semibold text-slate-100 block">{net.Name}</span>
+                  <span className="text-[10px] text-slate-500 font-mono">ID: {net.Id.slice(0, 12)}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-800 text-cyan-400 border border-slate-700">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#0e121b] text-blue-400 border border-[#232d3f]">
                     {net.Driver}
                   </span>
                   {destructiveEnabled && !['bridge', 'host', 'none'].includes(net.Name) && (
                     <button
                       onClick={() => setDeleteModal(net)}
-                      className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                      className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-[#1c2433] transition-colors"
                       title="Netzwerk löschen"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -89,7 +89,7 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-mono text-xs pt-2 border-t border-slate-800/60">
+              <div className="space-y-1.5 font-mono text-xs pt-2 border-t border-[#232d3f]/60">
                 <div className="flex justify-between text-slate-400">
                   <span>Subnetz:</span>
                   <span className="text-slate-200">{subnet}</span>

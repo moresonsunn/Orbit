@@ -41,11 +41,11 @@ export const GPUPage: React.FC = () => {
 
   if (!telemetry.available || !telemetry.devices || telemetry.devices.length === 0) {
     return (
-      <div className="p-8 rounded-2xl bg-slate-900/60 border border-slate-800/80 text-center space-y-3 max-w-xl mx-auto my-12 animate-in fade-in">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/80 text-slate-400">
+      <div className="p-8 rounded-lg bg-[#151b26] border border-[#232d3f] text-center space-y-3 max-w-xl mx-auto my-12 animate-in fade-in">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#0e121b] border border-[#232d3f] text-slate-400">
           <Cpu className="w-6 h-6" />
         </div>
-        <h3 className="text-base font-bold text-white tracking-tight">Keine kompatible GPU erkannt</h3>
+        <h3 className="text-base font-semibold text-slate-100 tracking-tight">Keine kompatible GPU erkannt</h3>
         <p className="text-xs text-slate-400 leading-relaxed font-mono">
           {telemetry.message ||
             'Weder NVIDIA NVML noch AMD/Intel DRM Schnittstellen sind auf diesem Host zugänglich. Das Dashboard und alle Container-Funktionen laufen normal weiter.'}
@@ -56,13 +56,13 @@ export const GPUPage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+      <div className="flex items-center justify-between p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-cyan-950/60 border border-cyan-800/60 text-cyan-400">
-            <Cpu className="w-5 h-5" />
+          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
+            <Cpu className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">
+            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">
               GPU Monitoring ({telemetry.devices.length} Karte(n) aktiv)
             </h3>
             <p className="text-xs text-slate-400 font-mono mt-0.5">
@@ -73,15 +73,15 @@ export const GPUPage: React.FC = () => {
       </div>
 
       {telemetry.devices.map((dev) => (
-        <div key={dev.index} className="space-y-4 p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-800">
+        <div key={dev.index} className="space-y-4 p-5 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#232d3f]">
             <div>
-              <h4 className="text-base font-bold text-white">{dev.model}</h4>
+              <h4 className="text-base font-semibold text-slate-100">{dev.model}</h4>
               <p className="text-xs text-slate-400 font-mono mt-0.5">
                 Hersteller: {dev.vendor.toUpperCase()} • Treiber: {dev.driverVersion}
               </p>
             </div>
-            <span className="px-3 py-1 rounded-full text-xs font-mono font-bold bg-cyan-950/60 text-cyan-300 border border-cyan-800/60 self-start sm:self-auto">
+            <span className="px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-[#0e121b] text-blue-400 border border-[#232d3f] self-start sm:self-auto">
               GPU #{dev.index}
             </span>
           </div>
@@ -92,7 +92,7 @@ export const GPUPage: React.FC = () => {
               gauge={dev.utilizationPercent}
               formattedValue={formatPercent(dev.utilizationPercent.value)}
               progressPercent={dev.utilizationPercent.value ?? undefined}
-              icon={<Zap className="w-4 h-4 text-cyan-400" />}
+              icon={<Zap className="w-4 h-4 text-blue-400" />}
             />
             <MetricCard
               title="VRAM Speicher"
@@ -119,30 +119,30 @@ export const GPUPage: React.FC = () => {
 
           {/* Running GPU Processes */}
           {dev.processes && dev.processes.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-slate-800/80">
-              <h5 className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono mb-3">
+            <div className="mt-4 pt-4 border-t border-[#232d3f]">
+              <h5 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono mb-3">
                 Container GPU-Prozesszuordnung
               </h5>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
-                    <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider">
+                    <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider">
                       <th className="pb-2 font-medium">PID</th>
                       <th className="pb-2 font-medium">Prozess</th>
                       <th className="pb-2 font-medium">Zugehöriger Container</th>
                       <th className="pb-2 font-medium text-right">VRAM Belegung</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/40">
+                  <tbody className="divide-y divide-[#232d3f]/40">
                     {dev.processes.map((proc, i) => (
-                      <tr key={i} className="hover:bg-slate-800/30">
-                        <td className="py-2.5 text-cyan-400">{proc.pid}</td>
-                        <td className="py-2.5 text-white font-sans">{proc.processName || '—'}</td>
-                        <td className="py-2.5 text-slate-300 font-sans font-medium">
+                      <tr key={i} className="hover:bg-[#1a2230]">
+                        <td className="py-2.5 text-blue-400">{proc.pid}</td>
+                        <td className="py-2.5 text-slate-200">{proc.processName || '—'}</td>
+                        <td className="py-2.5 text-slate-300 font-medium">
                           {proc.containerName ? (
-                            <span className="text-emerald-400 font-bold">{proc.containerName}</span>
+                            <span className="text-emerald-400 font-semibold">{proc.containerName}</span>
                           ) : (
-                            <span className="text-slate-400">Host-Prozess</span>
+                            <span className="text-slate-500">Host-Prozess</span>
                           )}
                         </td>
                         <td className="py-2.5 text-right text-slate-200">
