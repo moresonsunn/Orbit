@@ -57,25 +57,20 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200">
-      <div className="flex items-center justify-between p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
-            <SettingsIcon className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Plattform-Einstellungen</h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Abtastraten, Warnschwellen, Datenaufbewahrung und Feature-Flags
-            </p>
-          </div>
+    <div className="space-y-6 max-w-4xl animate-in fade-in duration-200 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Settings</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Abtastraten, Warnschwellen, Datenaufbewahrung und Feature-Flags.
+          </p>
         </div>
 
         {isAdmin && (
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-all shadow-xs"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-md text-xs font-medium transition-colors shadow-xs self-start sm:self-auto"
           >
             {savedSuccess ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
             <span>{savedSuccess ? 'Gespeichert!' : saving ? 'Wird gespeichert...' : 'Änderungen speichern'}</span>
@@ -91,53 +86,51 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Feature Flags Overview */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-3">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-            <ShieldAlert className="w-4 h-4 text-blue-400" />
-            <span>Aktive Feature-Flags (Host-Umgebung)</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
-              <span className="text-slate-400 block text-[10px]">Aktionen (Actions)</span>
+        <div className="p-5 rounded-lg bg-[#181818] border border-[#282828] space-y-3">
+          <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+            Aktive Feature-Flags (Host-Umgebung)
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 bg-[#121212] rounded-md border border-[#242424]">
+              <span className="text-neutral-500 block text-[11px]">Aktionen (Actions)</span>
               <span
                 className={`font-semibold ${
-                  authStatus?.features.enableActions ? 'text-emerald-400' : 'text-slate-500'
+                  authStatus?.features.enableActions ? 'text-emerald-400' : 'text-neutral-500'
                 }`}
               >
                 {authStatus?.features.enableActions ? 'Aktiviert' : 'Gesperrt (Read-only)'}
               </span>
             </div>
-            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
-              <span className="text-slate-400 block text-[10px]">Destruktiv (Delete/Prune)</span>
+            <div className="p-3 bg-[#121212] rounded-md border border-[#242424]">
+              <span className="text-neutral-500 block text-[11px]">Destruktiv (Delete/Prune)</span>
               <span
                 className={`font-semibold ${
-                  authStatus?.features.enableDestructive ? 'text-emerald-400' : 'text-slate-500'
+                  authStatus?.features.enableDestructive ? 'text-emerald-400' : 'text-neutral-500'
                 }`}
               >
                 {authStatus?.features.enableDestructive ? 'Aktiviert' : 'Gesperrt'}
               </span>
             </div>
-            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
-              <span className="text-slate-400 block text-[10px]">eBPF Modus</span>
-              <span className="text-blue-400 font-semibold uppercase">{authStatus?.features.ebpfMode || 'auto'}</span>
+            <div className="p-3 bg-[#121212] rounded-md border border-[#242424]">
+              <span className="text-neutral-500 block text-[11px]">eBPF Modus</span>
+              <span className="text-neutral-200 font-mono uppercase">{authStatus?.features.ebpfMode || 'auto'}</span>
             </div>
-            <div className="p-3 bg-[#0e121b] rounded-md border border-[#232d3f]">
-              <span className="text-slate-400 block text-[10px]">GPU Modus</span>
-              <span className="text-indigo-400 font-semibold uppercase">{authStatus?.features.gpuMode || 'auto'}</span>
+            <div className="p-3 bg-[#121212] rounded-md border border-[#242424]">
+              <span className="text-neutral-500 block text-[11px]">GPU Modus</span>
+              <span className="text-neutral-200 font-mono uppercase">{authStatus?.features.gpuMode || 'auto'}</span>
             </div>
           </div>
         </div>
 
         {/* Intervals */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-            <Clock className="w-4 h-4 text-blue-400" />
-            <span>Echtzeit-Abtastintervalle (Millisekunden)</span>
-          </div>
+        <div className="p-5 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
+          <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+            Echtzeit-Abtastintervalle (Millisekunden)
+          </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-slate-300 mb-1">Host-Metriken Intervall (ms)</label>
+              <label className="block text-neutral-400 mb-1">Host-Metriken Intervall (ms)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -148,11 +141,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, hostMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">Container-Metriken Intervall (ms)</label>
+              <label className="block text-neutral-400 mb-1">Container-Metriken Intervall (ms)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -163,11 +156,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, containerMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">GPU Telemetrie Intervall (ms)</label>
+              <label className="block text-neutral-400 mb-1">GPU Telemetrie Intervall (ms)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -178,11 +171,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, gpuMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">Netflow Topologie Intervall (ms)</label>
+              <label className="block text-neutral-400 mb-1">Netflow Topologie Intervall (ms)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -193,22 +186,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     intervals: { ...settings.intervals, netflowMs: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
           </div>
         </div>
 
         {/* Alert Thresholds */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-            <Bell className="w-4 h-4 text-blue-400" />
-            <span>Schwellenwerte für Warnungen (Alerts)</span>
-          </div>
+        <div className="p-5 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
+          <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+            Schwellenwerte für Warnungen (Alerts)
+          </span>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-slate-300 mb-1">Host CPU Warnschwelle (%)</label>
+              <label className="block text-neutral-400 mb-1">Host CPU Warnschwelle (%)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -222,11 +214,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">Host RAM Warnschwelle (%)</label>
+              <label className="block text-neutral-400 mb-1">Host RAM Warnschwelle (%)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -240,11 +232,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">Festplattenplatz Warnschwelle (%)</label>
+              <label className="block text-neutral-400 mb-1">Festplattenplatz Warnschwelle (%)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -258,11 +250,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">GPU Temperatur Warnschwelle (°C)</label>
+              <label className="block text-neutral-400 mb-1">GPU Temperatur Warnschwelle (°C)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -276,22 +268,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 font-mono focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
           </div>
         </div>
 
         {/* Retention */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200 uppercase tracking-wider font-mono">
-            <Database className="w-4 h-4 text-blue-400" />
-            <span>SQLite Historien-Aufbewahrung (Retention)</span>
-          </div>
+        <div className="p-5 rounded-lg bg-[#181818] border border-[#282828] space-y-4">
+          <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider block">
+            SQLite Historien-Aufbewahrung (Retention)
+          </span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             <div>
-              <label className="block text-slate-300 mb-1">Rohdaten (Stunden)</label>
+              <label className="block text-neutral-400 mb-1">Rohdaten (Stunden)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -302,11 +293,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, rawHours: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">5-Minuten Rollup (Tage)</label>
+              <label className="block text-neutral-400 mb-1">5-Minuten Rollup (Tage)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -317,11 +308,11 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, days5m: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
             <div>
-              <label className="block text-slate-300 mb-1">1-Stunden Rollup (Tage)</label>
+              <label className="block text-neutral-400 mb-1">1-Stunden Rollup (Tage)</label>
               <input
                 type="number"
                 disabled={!isAdmin}
@@ -332,7 +323,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
                     retention: { ...settings.retention, days1h: parseInt(e.target.value, 10) },
                   })
                 }
-                className="w-full px-3 py-1.5 bg-[#0e121b] border border-[#232d3f] rounded-md text-slate-200 focus:outline-none focus:border-blue-500 disabled:opacity-50"
+                className="w-full px-3 py-1.5 bg-[#121212] border border-[#282828] rounded-md text-neutral-200 font-mono focus:outline-none focus:border-neutral-400 disabled:opacity-50"
               />
             </div>
           </div>

@@ -54,82 +54,75 @@ export const VolumesPage: React.FC<VolumesPageProps> = ({ authStatus }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-amber-400">
-            <HardDrive className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Docker Volumes ({volumes.length})</h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Persistente Speicher-Volumes und Mountpoints
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Volumes</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Persistente Speicher-Volumes und Mountpoints ({volumes.length} Volumes).
+          </p>
         </div>
 
         {destructiveEnabled && (
           <button
             onClick={() => setPruneModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs font-medium text-slate-200 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1c1c1c] border border-[#2a2a2a] hover:bg-[#252525] text-xs font-medium text-neutral-300 transition-colors self-start sm:self-auto"
           >
-            <Scissors className="w-3.5 h-3.5 text-amber-400" />
+            <Scissors className="w-3.5 h-3.5 text-neutral-400" />
             <span>Ungenutzte Volumes bereinigen</span>
           </button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider bg-[#0e121b]/60">
-                <th className="py-2.5 px-4 font-medium">Volume Name</th>
-                <th className="py-2.5 px-3 font-medium">Treiber</th>
-                <th className="py-2.5 px-3 font-medium">Mountpoint</th>
-                <th className="py-2.5 px-3 font-medium">Belegter Speicher</th>
-                <th className="py-2.5 px-3 font-medium">Erstellt</th>
-                <th className="py-2.5 px-4 font-medium text-right">Aktionen</th>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs font-mono">
+          <thead>
+            <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold font-sans">
+              <th className="pb-3 px-3 font-semibold">Volume Name</th>
+              <th className="pb-3 px-3 font-semibold">Treiber</th>
+              <th className="pb-3 px-3 font-semibold">Mountpoint</th>
+              <th className="pb-3 px-3 font-semibold">Belegter Speicher</th>
+              <th className="pb-3 px-3 font-semibold">Erstellt</th>
+              <th className="pb-3 px-3 font-semibold text-right">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#1f1f1f]">
+            {volumes.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-neutral-500 font-sans">
+                  Keine Docker Volumes vorhanden.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#232d3f]/60">
-              {volumes.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    Keine Docker Volumes vorhanden.
+            ) : (
+              volumes.map((vol) => (
+                <tr key={vol.name} className="hover:bg-white/[0.02] transition-colors">
+                  <td className="py-3 px-3 font-semibold text-white text-xs truncate max-w-[200px]" title={vol.name}>
+                    {vol.name}
+                  </td>
+                  <td className="py-3 px-3 text-neutral-300">{vol.driver}</td>
+                  <td className="py-3 px-3 text-neutral-400 truncate max-w-[260px]" title={vol.mountpoint}>
+                    {vol.mountpoint}
+                  </td>
+                  <td className="py-3 px-3 text-neutral-200">
+                    {vol.sizeBytes !== undefined ? formatBytes(vol.sizeBytes) : '—'}
+                  </td>
+                  <td className="py-3 px-3 text-neutral-400">{formatDate(vol.createdAt)}</td>
+                  <td className="py-3 px-3 text-right">
+                    {destructiveEnabled && (
+                      <button
+                        onClick={() => setDeleteModal(vol)}
+                        className="p-1 rounded text-neutral-500 hover:text-rose-400 hover:bg-[#222222] transition-colors"
+                        title="Volume löschen"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </td>
                 </tr>
-              ) : (
-                volumes.map((vol) => (
-                  <tr key={vol.name} className="hover:bg-[#1a2230] transition-colors">
-                    <td className="py-3 px-4 font-semibold text-slate-100 text-xs truncate max-w-[200px]" title={vol.name}>
-                      {vol.name}
-                    </td>
-                    <td className="py-3 px-3 text-blue-400">{vol.driver}</td>
-                    <td className="py-3 px-3 text-slate-400 truncate max-w-[240px]" title={vol.mountpoint}>
-                      {vol.mountpoint}
-                    </td>
-                    <td className="py-3 px-3 text-slate-200">
-                      {vol.sizeBytes !== undefined ? formatBytes(vol.sizeBytes) : '—'}
-                    </td>
-                    <td className="py-3 px-3 text-slate-400">{formatDate(vol.createdAt)}</td>
-                    <td className="py-3 px-4 text-right">
-                      {destructiveEnabled && (
-                        <button
-                          onClick={() => setDeleteModal(vol)}
-                          className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-[#1c2433] transition-colors"
-                          title="Volume löschen"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
 
       <ActionConfirmModal

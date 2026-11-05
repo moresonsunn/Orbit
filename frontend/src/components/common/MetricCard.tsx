@@ -33,55 +33,55 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-lg bg-[#151b26] border border-[#232d3f] p-4 transition-all duration-150 hover:border-[#334155] shadow-xs',
-        alertThresholdExceeded && 'border-rose-500/50 bg-rose-950/20',
+        'relative overflow-hidden rounded-lg bg-[#181818] border border-[#282828] p-4 transition-all duration-150 hover:border-[#383838]',
+        alertThresholdExceeded && 'border-rose-800/80 bg-rose-950/20',
         className
       )}
     >
-      <div className="flex items-center justify-between text-slate-400 mb-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">{title}</span>
-        {icon && <div className="p-1 rounded bg-[#0e121b] border border-[#232d3f] text-slate-400">{icon}</div>}
+      <div className="flex items-center justify-between text-neutral-400 mb-2">
+        <span className="text-xs font-medium text-neutral-400">{title}</span>
+        {icon && <div className="text-neutral-500">{icon}</div>}
       </div>
 
       <div className="flex items-baseline gap-1 my-1">
         {isAvailable ? (
           <>
-            <span className="text-2xl font-bold tracking-tight text-white tabular-nums">
+            <span className="text-2xl font-semibold tracking-tight text-white tabular-nums font-sans">
               {formattedValue ?? (gauge?.value !== null && gauge?.value !== undefined ? gauge.value : '—')}
             </span>
-            {unit && <span className="text-xs text-slate-400 font-medium ml-0.5">{unit}</span>}
+            {unit && <span className="text-xs text-neutral-400 font-normal ml-0.5">{unit}</span>}
           </>
         ) : isPending ? (
-          <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/20">
-            <Clock className="w-3.5 h-3.5 animate-spin" />
+          <div className="flex items-center gap-1.5 text-xs text-neutral-400">
+            <Clock className="w-3.5 h-3.5 animate-spin text-neutral-500" />
             <span>Erfasse Messwert...</span>
           </div>
         ) : isUnsupported ? (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-[#0e121b] px-2 py-1 rounded border border-[#232d3f]">
-            <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+            <AlertCircle className="w-3.5 h-3.5" />
             <span>Nicht unterstützt</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-[#0e121b] px-2 py-1 rounded border border-[#232d3f]" title={gauge?.reason}>
-            <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
+          <div className="flex items-center gap-1.5 text-xs text-neutral-500" title={gauge?.reason}>
+            <AlertCircle className="w-3.5 h-3.5" />
             <span>Nicht verfügbar</span>
           </div>
         )}
       </div>
 
       {progressPercent !== undefined && isAvailable && (
-        <div className="w-full bg-[#0e121b] border border-[#232d3f]/60 h-2 rounded-full overflow-hidden mt-2.5">
+        <div className="w-full bg-[#262626] h-1.5 rounded-full overflow-hidden mt-2.5">
           <div
             className={cn(
               'h-full transition-all duration-300 rounded-full',
-              progressPercent > 85 ? 'bg-rose-500' : progressPercent > 70 ? 'bg-amber-500' : 'bg-blue-500'
+              progressPercent > 85 ? 'bg-rose-500' : progressPercent > 70 ? 'bg-amber-500' : 'bg-neutral-300'
             )}
             style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
           />
         </div>
       )}
 
-      {subtitle && <p className="text-xs text-slate-400 mt-2 font-normal truncate">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-neutral-500 mt-2 font-normal truncate">{subtitle}</p>}
     </div>
   );
 };

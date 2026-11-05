@@ -67,14 +67,14 @@ export const NetworkFlowPage: React.FC = () => {
       position: { x: 50, y: 150 + i * 180 },
       data: { label: n.label, type: n.type },
       style: {
-        background: '#151b26',
-        color: '#60a5fa',
-        border: '1.5px solid #3b82f6',
-        borderRadius: '8px',
+        background: '#181818',
+        color: '#ffffff',
+        border: '1px solid #3b82f6',
+        borderRadius: '6px',
         padding: '10px 18px',
         fontWeight: '600',
         fontSize: '12px',
-        boxShadow: '0 4px 14px rgba(59, 130, 246, 0.2)',
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.4)',
       },
     })),
 
@@ -84,10 +84,10 @@ export const NetworkFlowPage: React.FC = () => {
       position: { x: 300, y: 60 + i * 140 },
       data: { label: `${n.label}\n${n.subnet || ''}`, type: n.type },
       style: {
-        background: '#151b26',
-        color: '#93c5fd',
-        border: '1px solid #334155',
-        borderRadius: '8px',
+        background: '#181818',
+        color: '#a3a3a3',
+        border: '1px solid #282828',
+        borderRadius: '6px',
         padding: '8px 14px',
         fontSize: '11px',
         whiteSpace: 'pre-line',
@@ -100,12 +100,13 @@ export const NetworkFlowPage: React.FC = () => {
       position: { x: 620, y: 40 + i * 75 },
       data: { label: n.label, type: n.type, status: n.status },
       style: {
-        background: n.status === 'running' ? '#0f291e' : '#1e2430',
-        color: n.status === 'running' ? '#34d399' : '#94a3b8',
-        border: n.status === 'running' ? '1px solid #059669' : '1px solid #334155',
+        background: n.status === 'running' ? '#181818' : '#141414',
+        color: n.status === 'running' ? '#10b981' : '#737373',
+        border: n.status === 'running' ? '1px solid #059669' : '1px solid #282828',
         borderRadius: '6px',
         padding: '7px 14px',
         fontSize: '11px',
+        fontWeight: '500',
       },
     })),
   ];
@@ -116,39 +117,34 @@ export const NetworkFlowPage: React.FC = () => {
     target: e.target,
     animated: e.active,
     style: {
-      stroke: e.active ? '#3b82f6' : '#334155',
-      strokeWidth: e.active ? 2 : 1,
+      stroke: e.active ? '#3b82f6' : '#282828',
+      strokeWidth: e.active ? 1.5 : 1,
     },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      color: e.active ? '#3b82f6' : '#334155',
+      color: e.active ? '#3b82f6' : '#282828',
     },
   }));
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
       {/* Top Banner Notice */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-            <Network className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">Interaktive Netzwerktopologie</h3>
-            <p className="text-xs text-slate-400 font-normal mt-0.5">
-              Host-System → Docker Networks → Container Verknüpfungen
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-[#181818] border border-[#282828]">
+        <div>
+          <h2 className="text-xl font-semibold text-white tracking-tight">Interaktive Netzwerktopologie</h2>
+          <p className="text-xs text-neutral-400 mt-0.5">
+            Host-System → Docker Networks → Container Verknüpfungen
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0e121b] border border-[#232d3f] text-xs font-medium text-slate-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-400" />
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#121212] border border-[#282828] text-xs text-neutral-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>{snapshot.ebpfStatus}</span>
         </div>
       </div>
 
       {/* React Flow Interactive Graph */}
-      <div className="h-[480px] w-full rounded-xl overflow-hidden border border-[#232d3f] bg-[#111622] relative">
+      <div className="h-[460px] w-full rounded-lg overflow-hidden border border-[#282828] bg-[#121212] relative">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -157,44 +153,40 @@ export const NetworkFlowPage: React.FC = () => {
           maxZoom={2}
           proOptions={{ hideAttribution: true }}
         >
-          <Background color="#1f2937" gap={18} size={1} />
+          <Background color="#1f1f1f" gap={20} size={1} />
           <Controls position="top-left" showInteractive={false} />
           <MiniMap
             nodeStrokeColor="#3b82f6"
-            nodeColor="#1e293b"
-            maskColor="rgba(14, 18, 27, 0.85)"
-            className="rounded-lg border border-[#232d3f] bg-[#111622]"
+            nodeColor="#222222"
+            maskColor="rgba(18, 18, 18, 0.85)"
+            className="rounded-md border border-[#282828] bg-[#141414]"
           />
         </ReactFlow>
       </div>
 
       {/* Protocol Detection Summary */}
-      <div className="p-5 rounded-xl bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">Netzwerk-Protokoll-Statistik</h3>
-            <p className="text-xs text-slate-400 font-normal mt-0.5">
-              Unterscheidung zwischen konfigurierten Ports und tatsächlich beobachtetem Socket-Verkehr
-            </p>
-          </div>
-        </div>
+      <div className="p-4 rounded-lg bg-[#181818] border border-[#282828]">
+        <h3 className="text-sm font-semibold text-white tracking-tight">Netzwerk-Protokoll-Statistik</h3>
+        <p className="text-xs text-neutral-400 mt-0.5 mb-4">
+          Unterscheidung zwischen konfigurierten Ports und tatsächlich beobachtetem Socket-Verkehr
+        </p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {snapshot.protocolStats.map((ps) => (
-            <div key={ps.protocol} className="p-3 bg-[#0e121b] rounded-lg border border-[#232d3f]">
-              <span className="text-xs font-semibold text-blue-400 block truncate">{ps.protocol}</span>
-              <div className="mt-2 space-y-1 text-[11px]">
-                <div className="flex justify-between text-slate-400">
-                  <span className="font-normal">Konfiguriert:</span>
-                  <span className="text-slate-200 tabular-nums">{ps.configuredPortsCount}</span>
+            <div key={ps.protocol} className="p-3 bg-[#121212] rounded-md border border-[#242424]">
+              <span className="text-xs font-semibold text-neutral-200 block truncate">{ps.protocol}</span>
+              <div className="mt-2 space-y-1 text-[11px] font-mono">
+                <div className="flex justify-between text-neutral-400">
+                  <span>Konfiguriert:</span>
+                  <span className="text-neutral-200 tabular-nums">{ps.configuredPortsCount}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span className="font-normal">Beobachtet:</span>
+                <div className="flex justify-between text-neutral-400">
+                  <span>Beobachtet:</span>
                   <span className="text-emerald-400 font-medium tabular-nums">{ps.observedConnectionsCount}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span className="font-normal">Aktiv:</span>
-                  <span className="text-indigo-400 tabular-nums">{ps.activeFlows}</span>
+                <div className="flex justify-between text-neutral-400">
+                  <span>Aktiv:</span>
+                  <span className="text-neutral-300 tabular-nums">{ps.activeFlows}</span>
                 </div>
               </div>
             </div>
@@ -202,65 +194,61 @@ export const NetworkFlowPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Observed Active Sockets Table */}
-      <div className="p-5 rounded-xl bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-sm font-semibold text-white tracking-tight">
-              Beobachtete Verbindungen ({snapshot.connections.length})
-            </h3>
-            <p className="text-xs text-slate-400 font-normal mt-0.5">
-              Echte Socket-Tabellen aus Container- und Host-Netzwerk-Namespaces (Snapshot)
-            </p>
-          </div>
-        </div>
+      {/* Observed Active Sockets Table (Direct on Canvas, Tailscale style) */}
+      <div className="pt-2">
+        <h3 className="text-base font-semibold text-white tracking-tight">
+          Beobachtete Verbindungen ({snapshot.connections.length})
+        </h3>
+        <p className="text-xs text-neutral-400 mt-0.5 mb-3">
+          Echte Socket-Tabellen aus Container- und Host-Netzwerk-Namespaces
+        </p>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider text-[11px] font-medium">
-                <th className="pb-3 font-medium">Protokoll</th>
-                <th className="pb-3 font-medium">Lokale Adresse:Port</th>
-                <th className="pb-3 font-medium">Remote Adresse:Port</th>
-                <th className="pb-3 font-medium">Status</th>
-                <th className="pb-3 font-medium">Container</th>
-                <th className="pb-3 font-medium">Erkanntes Protokoll</th>
-                <th className="pb-3 font-medium text-right">Klassifikation</th>
+              <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold">
+                <th className="pb-3 px-3 font-semibold">Protokoll</th>
+                <th className="pb-3 px-3 font-semibold">Lokale Adresse:Port</th>
+                <th className="pb-3 px-3 font-semibold">Remote Adresse:Port</th>
+                <th className="pb-3 px-3 font-semibold">Status</th>
+                <th className="pb-3 px-3 font-semibold">Container</th>
+                <th className="pb-3 px-3 font-semibold">Erkanntes Protokoll</th>
+                <th className="pb-3 px-3 font-semibold text-right">Klassifikation</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#232d3f]/60">
+            <tbody className="divide-y divide-[#1f1f1f]">
               {snapshot.connections.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-6 text-center text-slate-400 font-normal">
+                  <td colSpan={7} className="py-8 text-center text-neutral-500 font-normal">
                     Keine aktiven Socket-Verbindungen erfasst.
                   </td>
                 </tr>
               ) : (
                 snapshot.connections.slice(0, 25).map((conn, i) => (
-                  <tr key={i} className="hover:bg-[#1a2230]/50 transition-colors">
-                    <td className="py-2.5 text-blue-400 font-semibold">{conn.protocol}</td>
-                    <td className="py-2.5 text-slate-200 tabular-nums">
+                  <tr key={i} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-2.5 px-3 text-neutral-300 font-mono text-xs">{conn.protocol}</td>
+                    <td className="py-2.5 px-3 text-neutral-200 font-mono text-xs tabular-nums">
                       {conn.localIp}:{conn.localPort}
                     </td>
-                    <td className="py-2.5 text-slate-200 tabular-nums">
+                    <td className="py-2.5 px-3 text-neutral-200 font-mono text-xs tabular-nums">
                       {conn.remoteIp}:{conn.remotePort}
                     </td>
-                    <td className="py-2.5">
+                    <td className="py-2.5 px-3">
                       <span
-                        className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium ${
+                        className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-normal ${
                           conn.state === 'ESTABLISHED'
-                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/40'
                             : conn.state === 'LISTEN'
-                            ? 'bg-slate-800 text-slate-300 border border-slate-700'
-                            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            ? 'bg-neutral-800 text-neutral-400 border border-neutral-700'
+                            : 'bg-amber-950/40 text-amber-400 border border-amber-800/40'
                         }`}
                       >
                         {conn.state}
                       </span>
                     </td>
-                    <td className="py-2.5 text-white font-medium">{conn.containerName || '—'}</td>
-                    <td className="py-2.5 text-indigo-400 font-medium">{conn.appProtocol || '—'}</td>
-                    <td className="py-2.5 text-right text-slate-400 text-[10px]">
+                    <td className="py-2.5 px-3 text-white font-medium">{conn.containerName || '—'}</td>
+                    <td className="py-2.5 px-3 text-neutral-300 font-mono text-xs">{conn.appProtocol || '—'}</td>
+                    <td className="py-2.5 px-3 text-right text-neutral-500 text-[11px]">
                       {conn.classification === 'port_based' ? 'Port-basiert' : 'eBPF'}
                     </td>
                   </tr>

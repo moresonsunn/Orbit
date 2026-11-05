@@ -25,46 +25,41 @@ export const Header: React.FC<HeaderProps> = ({
   const unreadAlerts = alerts.filter((a) => !a.acknowledged && !a.resolvedAt);
 
   return (
-    <header className="h-16 border-b border-[#1f2937] bg-[#111622] px-6 flex items-center justify-between z-20">
+    <header className="h-14 border-b border-[#222222] bg-[#141414] px-6 flex items-center justify-between z-20 font-sans">
       <div>
-        <h1 className="text-sm font-bold tracking-tight text-white flex items-center gap-2">
+        <h1 className="text-sm font-semibold tracking-tight text-white flex items-center gap-2">
           {title}
         </h1>
-        {subtitle && <p className="text-xs text-slate-400 font-normal mt-0.5">{subtitle}</p>}
+        {subtitle && <p className="text-xs text-neutral-400 font-normal mt-0.5">{subtitle}</p>}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Container count indicator */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-md bg-[#151b26] border border-[#232d3f] text-xs font-medium text-slate-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1a1a1a] border border-[#262626] text-xs font-normal text-neutral-300">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
           <span>
-            {runningContainersCount} / {totalContainersCount} Aktiv
+            {runningContainersCount} von {totalContainersCount} aktiv
           </span>
         </div>
 
         {/* Realtime WebSocket status */}
         <div
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border',
-            wsConnected
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-              : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
-          )}
+          className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-normal text-neutral-400"
           title={wsConnected ? 'Echtzeit-Verbindung aktiv' : 'Echtzeit-Verbindung getrennt'}
         >
-          <span className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-400' : 'bg-rose-400')} />
-          <span>{wsConnected ? 'LIVE' : 'OFFLINE'}</span>
+          <span className={cn('w-1.5 h-1.5 rounded-full', wsConnected ? 'bg-emerald-500' : 'bg-neutral-600')} />
+          <span>{wsConnected ? 'Live' : 'Getrennt'}</span>
         </div>
 
         {/* Alerts Button */}
         <button
           onClick={onOpenAlerts}
-          className="relative p-2 rounded-md bg-[#151b26] border border-[#232d3f] text-slate-300 hover:text-white hover:bg-[#1a2230] transition-colors"
+          className="relative p-1.5 rounded-md text-neutral-400 hover:text-white hover:bg-white/[0.05] transition-colors"
           title="Benachrichtigungen und Warnungen"
         >
           <Bell className="w-4 h-4" />
           {unreadAlerts.length > 0 && (
-            <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-bold">
+            <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-3.5 h-3.5 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold">
               {unreadAlerts.length}
             </span>
           )}

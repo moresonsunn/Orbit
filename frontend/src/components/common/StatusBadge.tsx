@@ -9,44 +9,38 @@ interface StatusBadgeProps {
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
   const s = status.toLowerCase();
 
-  let bg = 'bg-slate-800/70 text-slate-400 border-slate-700/50';
-  let dot = 'bg-slate-500';
+  let dot = 'bg-neutral-500';
+  let textColor = 'text-neutral-400';
   let label = status;
 
   if (s === 'running') {
-    bg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25';
-    dot = 'bg-emerald-400';
+    dot = 'bg-emerald-500';
+    textColor = 'text-neutral-200';
     label = 'Läuft';
   } else if (s === 'exited' || s === 'stopped') {
-    bg = 'bg-slate-800/80 text-slate-400 border-slate-700/50';
-    dot = 'bg-slate-500';
+    dot = 'bg-neutral-500';
+    textColor = 'text-neutral-400';
     label = 'Gestoppt';
   } else if (s === 'unhealthy') {
-    bg = 'bg-rose-500/10 text-rose-400 border-rose-500/25';
-    dot = 'bg-rose-400';
-    label = 'Problem';
+    dot = 'bg-rose-500';
+    textColor = 'text-rose-400';
+    label = 'Unhealthy';
   } else if (s === 'healthy') {
-    bg = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25';
-    dot = 'bg-emerald-400';
+    dot = 'bg-emerald-500';
+    textColor = 'text-neutral-200';
     label = 'Healthy';
   } else if (s === 'paused') {
-    bg = 'bg-amber-500/10 text-amber-400 border-amber-500/25';
-    dot = 'bg-amber-400';
+    dot = 'bg-amber-500';
+    textColor = 'text-amber-400';
     label = 'Pausiert';
   } else if (s === 'restarting') {
-    bg = 'bg-blue-500/10 text-blue-400 border-blue-500/25';
-    dot = 'bg-blue-400 animate-pulse';
+    dot = 'bg-blue-500 animate-pulse';
+    textColor = 'text-blue-400';
     label = 'Neustart...';
   }
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border tracking-normal',
-        bg,
-        className
-      )}
-    >
+    <span className={cn('inline-flex items-center gap-1.5 text-xs font-normal whitespace-nowrap', textColor, className)}>
       <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', dot)} />
       <span>{label}</span>
     </span>

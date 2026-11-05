@@ -54,93 +54,86 @@ export const ImagesPage: React.FC<ImagesPageProps> = ({ authStatus }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
-            <Layers className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Docker Images ({images.length})</h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Lokale Image-Registry und belegter Speicherplatz
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Images</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Lokale Image-Registry und belegter Speicherplatz ({images.length} Images).
+          </p>
         </div>
 
         {destructiveEnabled && (
           <button
             onClick={() => setPruneModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] hover:bg-[#1c2433] text-xs font-medium text-slate-200 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#1c1c1c] border border-[#2a2a2a] hover:bg-[#252525] text-xs font-medium text-neutral-300 transition-colors self-start sm:self-auto"
           >
-            <Scissors className="w-3.5 h-3.5 text-amber-400" />
+            <Scissors className="w-3.5 h-3.5 text-neutral-400" />
             <span>Ungenutzte Images bereinigen</span>
           </button>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs font-mono">
-            <thead>
-              <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider bg-[#0e121b]/60">
-                <th className="py-2.5 px-4 font-medium">Repository / Tag</th>
-                <th className="py-2.5 px-3 font-medium">Image ID</th>
-                <th className="py-2.5 px-3 font-medium">Größe</th>
-                <th className="py-2.5 px-3 font-medium">Erstellt</th>
-                <th className="py-2.5 px-3 font-medium">Container</th>
-                <th className="py-2.5 px-4 font-medium text-right">Aktionen</th>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs font-mono">
+          <thead>
+            <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold font-sans">
+              <th className="pb-3 px-3 font-semibold">Repository / Tag</th>
+              <th className="pb-3 px-3 font-semibold">Image ID</th>
+              <th className="pb-3 px-3 font-semibold">Größe</th>
+              <th className="pb-3 px-3 font-semibold">Erstellt</th>
+              <th className="pb-3 px-3 font-semibold">Container</th>
+              <th className="pb-3 px-3 font-semibold text-right">Aktionen</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-[#1f1f1f]">
+            {images.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="py-8 text-center text-neutral-500 font-sans">
+                  Keine Images gefunden.
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-[#232d3f]/60">
-              {images.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    Keine Images gefunden.
-                  </td>
-                </tr>
-              ) : (
-                images.map((img) => {
-                  const tag = img.RepoTags && img.RepoTags.length > 0 ? img.RepoTags[0] : '<none>:<none>';
-                  const shortId = img.Id.replace('sha256:', '').slice(0, 12);
+            ) : (
+              images.map((img) => {
+                const tag = img.RepoTags && img.RepoTags.length > 0 ? img.RepoTags[0] : '<none>:<none>';
+                const shortId = img.Id.replace('sha256:', '').slice(0, 12);
 
-                  return (
-                    <tr key={img.Id} className="hover:bg-[#1a2230] transition-colors">
-                      <td className="py-3 px-4 font-semibold text-slate-100 text-xs font-mono">{tag}</td>
-                      <td className="py-3 px-3 text-slate-400">{shortId}</td>
-                      <td className="py-3 px-3 text-slate-200">{formatBytes(img.Size)}</td>
-                      <td className="py-3 px-3 text-slate-400">
-                        {img.Created ? formatDate(new Date(img.Created * 1000).toISOString()) : '—'}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium border ${
-                            img.Containers > 0
-                              ? 'bg-emerald-950/40 text-emerald-400 border-emerald-800/60'
-                              : 'bg-[#0e121b] text-slate-400 border-[#232d3f]'
-                          }`}
+                return (
+                  <tr key={img.Id} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="py-3 px-3 font-semibold text-white text-xs">{tag}</td>
+                    <td className="py-3 px-3 text-neutral-400">{shortId}</td>
+                    <td className="py-3 px-3 text-neutral-200">{formatBytes(img.Size)}</td>
+                    <td className="py-3 px-3 text-neutral-400">
+                      {img.Created ? formatDate(new Date(img.Created * 1000).toISOString()) : '—'}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-normal ${
+                          img.Containers > 0
+                            ? 'bg-[#1e1e1e] text-neutral-200 border border-[#2e2e2e]'
+                            : 'bg-transparent text-neutral-500'
+                        }`}
+                      >
+                        {img.Containers} verwendet
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      {destructiveEnabled && (
+                        <button
+                          onClick={() => setDeleteModal(img)}
+                          className="p-1 rounded text-neutral-500 hover:text-rose-400 hover:bg-[#222222] transition-colors"
+                          title="Image löschen"
                         >
-                          {img.Containers} verwendet
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        {destructiveEnabled && (
-                          <button
-                            onClick={() => setDeleteModal(img)}
-                            className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-[#1c2433] transition-colors"
-                            title="Image löschen"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
 
       <ActionConfirmModal

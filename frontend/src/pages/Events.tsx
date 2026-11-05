@@ -38,77 +38,70 @@ export const EventsPage: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
-            <Activity className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">Docker Activity Feed</h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Kontinuierlich erfasste Container- und System-Ereignisse
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Events</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Kontinuierlich erfasste Docker- und System-Ereignisse.
+          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 self-start sm:self-auto">
           {(['all', 'warning', 'critical'] as const).map((sev) => (
             <button
               key={sev}
               onClick={() => setFilterSeverity(sev)}
-              className={`px-3 py-1 rounded-md text-xs font-medium capitalize transition-all ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
                 filterSeverity === sev
-                  ? 'bg-[#1c2433] text-blue-400 border border-[#2d3a4f]'
-                  : 'text-slate-400 hover:text-white bg-[#0e121b] border border-[#232d3f]'
+                  ? 'bg-white/10 text-white'
+                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              {sev === 'all' ? 'Alle Events' : sev === 'warning' ? 'Warnungen' : 'Kritisch'}
+              {sev === 'all' ? 'Alle' : sev === 'warning' ? 'Warnungen' : 'Kritisch'}
             </button>
           ))}
           <button
             onClick={loadEvents}
-            className="p-1.5 rounded-md bg-[#0e121b] border border-[#232d3f] text-slate-400 hover:text-white hover:bg-[#1c2433]"
+            className="p-1 rounded-md text-neutral-400 hover:text-white hover:bg-[#202020] transition-colors ml-1"
             title="Aktualisieren"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="divide-y divide-[#232d3f]/60 font-mono text-xs">
-          {filtered.length === 0 ? (
-            <div className="p-8 text-center text-slate-500">Keine Ereignisse vorhanden.</div>
-          ) : (
-            filtered.map((ev) => (
-              <div key={ev.id || `${ev.actorId}-${ev.timestamp}`} className="p-4 hover:bg-[#1a2230] transition-colors flex items-start gap-3">
-                <div className="mt-0.5 shrink-0">
-                  {ev.severity === 'critical' ? (
-                    <AlertCircle className="w-4 h-4 text-rose-400" />
-                  ) : ev.severity === 'warning' ? (
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                  ) : (
-                    <Info className="w-4 h-4 text-blue-400" />
-                  )}
-                </div>
+      <div className="divide-y divide-[#1f1f1f]">
+        {filtered.length === 0 ? (
+          <div className="py-12 text-center text-neutral-500">Keine Ereignisse vorhanden.</div>
+        ) : (
+          filtered.map((ev) => (
+            <div key={ev.id || `${ev.actorId}-${ev.timestamp}`} className="py-3 px-1 hover:bg-white/[0.02] transition-colors flex items-start gap-3">
+              <div className="mt-1 shrink-0">
+                {ev.severity === 'critical' ? (
+                  <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
+                ) : ev.severity === 'warning' ? (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 inline-block" />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-neutral-500 inline-block" />
+                )}
+              </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-slate-100 font-mono text-xs">{ev.actorName}</span>
-                    <span className="text-[11px] text-slate-500 shrink-0">{formatDate(ev.timestamp)}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="px-2 py-0.5 rounded text-[10px] uppercase font-medium bg-[#0e121b] text-slate-300 border border-[#232d3f]">
-                      {ev.type}:{ev.action}
-                    </span>
-                    <span className="text-slate-500 truncate max-w-sm">ID: {ev.actorId.slice(0, 12)}</span>
-                  </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-white text-xs">{ev.actorName}</span>
+                  <span className="text-[11px] text-neutral-500 font-mono shrink-0">{formatDate(ev.timestamp)}</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] uppercase font-mono bg-[#1c1c1c] text-neutral-300 border border-[#2a2a2a]">
+                    {ev.type}:{ev.action}
+                  </span>
+                  <span className="text-neutral-500 font-mono text-[11px] truncate max-w-sm">ID: {ev.actorId.slice(0, 12)}</span>
                 </div>
               </div>
-            ))
-          )}
-        </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

@@ -1,42 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 @layer base {
   :root {
-    --background: 220 33% 8%;
-    --foreground: 210 40% 98%;
-    --card: 220 28% 12%;
-    --card-foreground: 210 40% 98%;
-    --popover: 220 28% 14%;
-    --popover-foreground: 210 40% 98%;
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 25% 18%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 220 20% 15%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 220 25% 18%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 220 22% 19%;
-    --input: 220 22% 19%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
     --ring: 217 91% 60%;
     --radius: 0.5rem;
   }
 }
 
-*, ::before, ::after {
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-
 body {
-  background-color: #0e121b;
-  color: #e2e8f0;
+  background-color: #121212;
+  color: #f5f5f5;
+  font-family: var(--font-sans);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -48,46 +45,46 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0e121b;
+  background: #121212;
 }
 ::-webkit-scrollbar-thumb {
-  background: #232d3f;
+  background: #282828;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #383838;
 }
 
 /* React Flow Overrides for Tailscale Dark Theme */
 .react-flow__controls {
-  background-color: #151b26 !important;
-  border: 1px solid #232d3f !important;
-  border-radius: 8px !important;
+  background-color: #181818 !important;
+  border: 1px solid #282828 !important;
+  border-radius: 6px !important;
   overflow: hidden !important;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4) !important;
 }
 .react-flow__controls-button {
-  background-color: #151b26 !important;
-  border-bottom: 1px solid #232d3f !important;
-  color: #94a3b8 !important;
-  fill: #94a3b8 !important;
+  background-color: #181818 !important;
+  border-bottom: 1px solid #282828 !important;
+  color: #a3a3a3 !important;
+  fill: #a3a3a3 !important;
 }
 .react-flow__controls-button:hover {
-  background-color: #1e2738 !important;
-  color: #f1f5f9 !important;
-  fill: #f1f5f9 !important;
+  background-color: #242424 !important;
+  color: #ffffff !important;
+  fill: #ffffff !important;
 }
 .react-flow__controls-button svg {
   fill: currentColor !important;
 }
 .react-flow__minimap {
-  background-color: #101520 !important;
-  border: 1px solid #232d3f !important;
-  border-radius: 8px !important;
+  background-color: #161616 !important;
+  border: 1px solid #282828 !important;
+  border-radius: 6px !important;
   overflow: hidden !important;
 }
 .react-flow__minimap-mask {
-  fill: rgba(14, 18, 27, 0.85) !important;
+  fill: rgba(18, 18, 18, 0.85) !important;
 }
 .react-flow__attribution {
   display: none !important;

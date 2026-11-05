@@ -41,12 +41,12 @@ export const GPUPage: React.FC = () => {
 
   if (!telemetry.available || !telemetry.devices || telemetry.devices.length === 0) {
     return (
-      <div className="p-8 rounded-lg bg-[#151b26] border border-[#232d3f] text-center space-y-3 max-w-xl mx-auto my-12 animate-in fade-in">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-lg bg-[#0e121b] border border-[#232d3f] text-slate-400">
-          <Cpu className="w-6 h-6" />
+      <div className="p-8 rounded-lg bg-[#181818] border border-[#282828] text-center space-y-3 max-w-xl mx-auto my-12 animate-in fade-in font-sans">
+        <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-[#222222] border border-[#2e2e2e] text-neutral-400">
+          <Cpu className="w-5 h-5" />
         </div>
-        <h3 className="text-base font-semibold text-slate-100 tracking-tight">Keine kompatible GPU erkannt</h3>
-        <p className="text-xs text-slate-400 leading-relaxed font-mono">
+        <h3 className="text-base font-semibold text-white tracking-tight">Keine kompatible GPU erkannt</h3>
+        <p className="text-xs text-neutral-400 leading-relaxed font-sans">
           {telemetry.message ||
             'Weder NVIDIA NVML noch AMD/Intel DRM Schnittstellen sind auf diesem Host zugänglich. Das Dashboard und alle Container-Funktionen laufen normal weiter.'}
         </p>
@@ -55,33 +55,26 @@ export const GPUPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex items-center justify-between p-4 rounded-lg bg-[#151b26] border border-[#232d3f]">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-md bg-[#0e121b] border border-[#232d3f] text-blue-400">
-            <Cpu className="w-4 h-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-slate-100 tracking-tight">
-              GPU Monitoring ({telemetry.devices.length} Karte(n) aktiv)
-            </h3>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              Live-Telemetrie via NVML / Direct Rendering Manager
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">GPU Monitoring</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Live-Telemetrie via NVML / Direct Rendering Manager ({telemetry.devices.length} Karte(n) aktiv).
+          </p>
         </div>
       </div>
 
       {telemetry.devices.map((dev) => (
-        <div key={dev.index} className="space-y-4 p-5 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#232d3f]">
+        <div key={dev.index} className="space-y-4 p-5 rounded-lg bg-[#181818] border border-[#282828]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#242424]">
             <div>
-              <h4 className="text-base font-semibold text-slate-100">{dev.model}</h4>
-              <p className="text-xs text-slate-400 font-mono mt-0.5">
+              <h4 className="text-base font-semibold text-white">{dev.model}</h4>
+              <p className="text-xs text-neutral-400 font-mono mt-0.5">
                 Hersteller: {dev.vendor.toUpperCase()} • Treiber: {dev.driverVersion}
               </p>
             </div>
-            <span className="px-2.5 py-0.5 rounded text-xs font-mono font-medium bg-[#0e121b] text-blue-400 border border-[#232d3f] self-start sm:self-auto">
+            <span className="px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#222222] text-neutral-300 border border-[#2e2e2e] self-start sm:self-auto">
               GPU #{dev.index}
             </span>
           </div>
@@ -92,7 +85,6 @@ export const GPUPage: React.FC = () => {
               gauge={dev.utilizationPercent}
               formattedValue={formatPercent(dev.utilizationPercent.value)}
               progressPercent={dev.utilizationPercent.value ?? undefined}
-              icon={<Zap className="w-4 h-4 text-blue-400" />}
             />
             <MetricCard
               title="VRAM Speicher"
@@ -100,52 +92,49 @@ export const GPUPage: React.FC = () => {
               formattedValue={formatPercent(dev.memoryPercent.value)}
               progressPercent={dev.memoryPercent.value ?? undefined}
               subtitle={`${formatBytes(dev.memoryUsedBytes.value)} / ${formatBytes(dev.memoryTotalBytes.value)}`}
-              icon={<Layers className="w-4 h-4 text-indigo-400" />}
             />
             <MetricCard
               title="Temperatur"
               gauge={dev.temperatureCelsius}
               formattedValue={dev.temperatureCelsius.value ? `${dev.temperatureCelsius.value} °C` : '—'}
-              icon={<Thermometer className="w-4 h-4 text-amber-400" />}
             />
             <MetricCard
               title="Leistungsaufnahme"
               gauge={dev.powerDrawWatts}
               formattedValue={dev.powerDrawWatts.value ? `${dev.powerDrawWatts.value} W` : '—'}
               subtitle={dev.powerLimitWatts.value ? `Limit: ${dev.powerLimitWatts.value} W` : undefined}
-              icon={<Activity className="w-4 h-4 text-emerald-400" />}
             />
           </div>
 
           {/* Running GPU Processes */}
           {dev.processes && dev.processes.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-[#232d3f]">
-              <h5 className="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono mb-3">
+            <div className="mt-4 pt-4 border-t border-[#242424]">
+              <h5 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider mb-3">
                 Container GPU-Prozesszuordnung
               </h5>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-mono">
                   <thead>
-                    <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider">
+                    <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider font-sans">
                       <th className="pb-2 font-medium">PID</th>
                       <th className="pb-2 font-medium">Prozess</th>
                       <th className="pb-2 font-medium">Zugehöriger Container</th>
                       <th className="pb-2 font-medium text-right">VRAM Belegung</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#232d3f]/40">
+                  <tbody className="divide-y divide-[#202020]">
                     {dev.processes.map((proc, i) => (
-                      <tr key={i} className="hover:bg-[#1a2230]">
-                        <td className="py-2.5 text-blue-400">{proc.pid}</td>
-                        <td className="py-2.5 text-slate-200">{proc.processName || '—'}</td>
-                        <td className="py-2.5 text-slate-300 font-medium">
+                      <tr key={i} className="hover:bg-white/[0.02]">
+                        <td className="py-2.5 text-neutral-300">{proc.pid}</td>
+                        <td className="py-2.5 text-neutral-200">{proc.processName || '—'}</td>
+                        <td className="py-2.5 text-neutral-300 font-sans">
                           {proc.containerName ? (
-                            <span className="text-emerald-400 font-semibold">{proc.containerName}</span>
+                            <span className="text-emerald-400 font-medium">{proc.containerName}</span>
                           ) : (
-                            <span className="text-slate-500">Host-Prozess</span>
+                            <span className="text-neutral-500">Host-Prozess</span>
                           )}
                         </td>
-                        <td className="py-2.5 text-right text-slate-200">
+                        <td className="py-2.5 text-right text-neutral-200">
                           {formatBytes(proc.usedMemoryBytes.value)}
                         </td>
                       </tr>

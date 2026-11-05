@@ -96,13 +96,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const primaryGPU = gpu?.devices && gpu.devices.length > 0 ? gpu.devices[0] : null;
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200 font-sans">
+      {/* Page Header (Tailscale style) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-white tracking-tight">Dashboard</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
+            Zentrale Host-Telemetrie und Docker-Ressourcen im Sekundentakt.
+          </p>
+        </div>
+      </div>
+
       {/* Upper Information Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* CPU Card */}
         <MetricCard
           title="CPU Gesamt"
-          icon={<Cpu className="w-4 h-4 text-sky-400" />}
           gauge={metrics?.cpu.totalPercent}
           formattedValue={formatPercent(metrics?.cpu.totalPercent.value)}
           progressPercent={metrics?.cpu.totalPercent.value ?? undefined}
@@ -114,7 +123,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* RAM Card */}
         <MetricCard
           title="Arbeitsspeicher"
-          icon={<Server className="w-4 h-4 text-indigo-400" />}
           gauge={metrics?.memory.usedPercent}
           formattedValue={formatPercent(metrics?.memory.usedPercent.value)}
           progressPercent={metrics?.memory.usedPercent.value ?? undefined}
@@ -124,7 +132,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Network RX/TX Card */}
         <MetricCard
           title="Netzwerk-Durchsatz"
-          icon={<Activity className="w-4 h-4 text-emerald-400" />}
           formattedValue={formatBps((metrics?.network.rxBps.value ?? 0) + (metrics?.network.txBps.value ?? 0))}
           subtitle={`↓ ${formatBps(metrics?.network.rxBps.value)} · ↑ ${formatBps(metrics?.network.txBps.value)}`}
         />
@@ -132,7 +139,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Storage Card */}
         <MetricCard
           title="Festplattenspeicher"
-          icon={<HardDrive className="w-4 h-4 text-amber-400" />}
           gauge={metrics?.storage.usedPercent}
           formattedValue={formatPercent(metrics?.storage.usedPercent.value)}
           progressPercent={metrics?.storage.usedPercent.value ?? undefined}
@@ -143,95 +149,75 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Secondary Metrics & Docker Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Load Average */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Load Average</span>
-            <div className="p-1 rounded bg-[#0e121b] border border-[#232d3f] text-slate-400">
-              <Activity className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-white mt-2">
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+          <span className="text-xs font-medium text-neutral-400 block mb-2">Load Average</span>
+          <div className="flex items-center justify-between text-white mt-3">
             <div>
-              <span className="text-[11px] text-slate-400 block font-normal">1 min</span>
-              <span className="text-lg font-bold tabular-nums text-slate-100">{metrics?.cpu.loadAvg1.value?.toFixed(2) ?? '—'}</span>
+              <span className="text-[11px] text-neutral-500 block font-normal">1 min</span>
+              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg1.value?.toFixed(2) ?? '—'}</span>
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 block font-normal">5 min</span>
-              <span className="text-lg font-bold tabular-nums text-slate-100">{metrics?.cpu.loadAvg5.value?.toFixed(2) ?? '—'}</span>
+              <span className="text-[11px] text-neutral-500 block font-normal">5 min</span>
+              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg5.value?.toFixed(2) ?? '—'}</span>
             </div>
             <div>
-              <span className="text-[11px] text-slate-400 block font-normal">15 min</span>
-              <span className="text-lg font-bold tabular-nums text-slate-100">{metrics?.cpu.loadAvg15.value?.toFixed(2) ?? '—'}</span>
+              <span className="text-[11px] text-neutral-500 block font-normal">15 min</span>
+              <span className="text-base font-semibold tabular-nums text-white font-mono">{metrics?.cpu.loadAvg15.value?.toFixed(2) ?? '—'}</span>
             </div>
           </div>
         </div>
 
         {/* Temperature & Host Power */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Systemtemperatur</span>
-            <div className="p-1 rounded bg-[#0e121b] border border-[#232d3f] text-slate-400">
-              <Thermometer className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-2xl font-bold tracking-tight text-white tabular-nums">
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+          <span className="text-xs font-medium text-neutral-400 block mb-2">Systemtemperatur</span>
+          <div className="flex items-baseline gap-2 mt-2">
+            <span className="text-2xl font-semibold tracking-tight text-white tabular-nums font-mono">
               {metrics?.cpu.tempC.value ? `${metrics.cpu.tempC.value} °C` : '—'}
             </span>
-            <span className="text-xs text-slate-400 font-normal">CPU</span>
+            <span className="text-xs text-neutral-500 font-normal">CPU</span>
           </div>
-          <p className="text-xs text-slate-400 mt-2 font-normal">
-            Laufzeit: {formatUptime(metrics?.system.uptimeSeconds.value)}
+          <p className="text-xs text-neutral-500 mt-2 font-normal font-mono">
+            Uptime: {formatUptime(metrics?.system.uptimeSeconds.value)}
           </p>
         </div>
 
         {/* GPU Telemetry Preview */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">GPU Telemetrie</span>
-            <div className="p-1 rounded bg-[#0e121b] border border-[#232d3f] text-slate-400">
-              <Zap className="w-4 h-4 text-blue-400" />
-            </div>
-          </div>
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+          <span className="text-xs font-medium text-neutral-400 block mb-2">GPU Telemetrie</span>
           {primaryGPU ? (
             <div>
-              <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-xl font-bold tracking-tight text-white tabular-nums">
+              <div className="flex items-baseline gap-2 mt-2">
+                <span className="text-xl font-semibold tracking-tight text-white tabular-nums font-mono">
                   {formatPercent(primaryGPU.utilizationPercent.value)}
                 </span>
-                <span className="text-xs text-slate-400 font-normal">Auslastung</span>
+                <span className="text-xs text-neutral-500 font-normal">Auslastung</span>
               </div>
-              <p className="text-xs text-slate-400 mt-2 font-normal truncate">
+              <p className="text-xs text-neutral-500 mt-2 font-normal truncate">
                 {primaryGPU.model} {primaryGPU.temperatureCelsius.value ? `(${primaryGPU.temperatureCelsius.value}°C)` : ''}
               </p>
             </div>
           ) : (
-            <div className="py-2">
-              <span className="text-xs text-slate-400 font-normal">Keine kompatible GPU erkannt</span>
+            <div className="py-2.5">
+              <span className="text-xs text-neutral-500 font-normal">Keine kompatible GPU erkannt</span>
             </div>
           )}
         </div>
 
         {/* Docker Overview Summary */}
-        <div className="p-4 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Docker Engine</span>
-            <div className="p-1 rounded bg-[#0e121b] border border-[#232d3f] text-slate-400">
-              <Boxes className="w-4 h-4 text-blue-400" />
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+          <span className="text-xs font-medium text-neutral-400 block mb-2">Docker Engine</span>
+          <div className="grid grid-cols-3 gap-2 mt-2 text-center font-mono">
+            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Laufend</span>
+              <span className="text-sm font-semibold tabular-nums text-emerald-400">{counts.running}</span>
             </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2 mt-2 text-center">
-            <div className="bg-[#0e121b] p-2 rounded border border-[#232d3f]">
-              <span className="text-[11px] text-slate-400 block font-normal">Laufend</span>
-              <span className="text-base font-bold tabular-nums text-emerald-400">{counts.running}</span>
+            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Gestoppt</span>
+              <span className="text-sm font-semibold tabular-nums text-neutral-400">{counts.stopped}</span>
             </div>
-            <div className="bg-[#0e121b] p-2 rounded border border-[#232d3f]">
-              <span className="text-[11px] text-slate-400 block font-normal">Gestoppt</span>
-              <span className="text-base font-bold tabular-nums text-slate-400">{counts.stopped}</span>
-            </div>
-            <div className="bg-[#0e121b] p-2 rounded border border-[#232d3f]">
-              <span className="text-[11px] text-slate-400 block font-normal">Problem</span>
-              <span className="text-base font-bold tabular-nums text-rose-400">{counts.unhealthy}</span>
+            <div className="bg-[#121212] p-2 rounded border border-[#242424]">
+              <span className="text-[11px] text-neutral-500 block font-normal font-sans">Problem</span>
+              <span className="text-sm font-semibold tabular-nums text-rose-400">{counts.unhealthy}</span>
             </div>
           </div>
         </div>
@@ -240,80 +226,80 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Live Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* CPU & RAM Live Chart */}
-        <div className="p-5 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-white tracking-tight">CPU & RAM Verlauf (Echtzeit)</h3>
-              <p className="text-xs text-slate-400 font-normal">Live-Abtastung im Sekundentakt</p>
+              <h3 className="text-sm font-semibold text-white tracking-tight">CPU & RAM Verlauf (Echtzeit)</h3>
+              <p className="text-xs text-neutral-500 font-normal">Live-Abtastung im Sekundentakt</p>
             </div>
-            <div className="flex items-center gap-4 text-xs font-medium">
+            <div className="flex items-center gap-4 text-xs font-medium font-mono">
               <span className="flex items-center gap-1.5 text-blue-400">
-                <span className="w-2 h-2 rounded-full bg-blue-400" /> CPU %
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400" /> CPU %
               </span>
-              <span className="flex items-center gap-1.5 text-indigo-400">
-                <span className="w-2 h-2 rounded-full bg-indigo-400" /> RAM %
+              <span className="flex items-center gap-1.5 text-purple-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400" /> RAM %
               </span>
             </div>
           </div>
-          <div className="h-56 w-full">
+          <div className="h-52 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="cpuGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="ramGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#818cf8" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#a855f7" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={false} />
-                <YAxis domain={[0, 100]} stroke="#475569" fontSize={11} tickLine={false} unit="%" />
+                <XAxis dataKey="time" stroke="#525252" fontSize={10} tickLine={false} />
+                <YAxis domain={[0, 100]} stroke="#525252" fontSize={10} tickLine={false} unit="%" />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#151b26', borderColor: '#232d3f', borderRadius: '0.5rem', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#141414', borderColor: '#282828', borderRadius: '0.375rem', fontSize: '11px', color: '#f5f5f5' }}
                 />
                 <Area type="monotone" dataKey="cpu" stroke="#3b82f6" fillOpacity={1} fill="url(#cpuGrad)" strokeWidth={1.5} isAnimationActive={false} />
-                <Area type="monotone" dataKey="ram" stroke="#818cf8" fillOpacity={1} fill="url(#ramGrad)" strokeWidth={1.5} isAnimationActive={false} />
+                <Area type="monotone" dataKey="ram" stroke="#a855f7" fillOpacity={1} fill="url(#ramGrad)" strokeWidth={1.5} isAnimationActive={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Network Live Chart */}
-        <div className="p-5 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
+        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-white tracking-tight">Netzwerk-Durchsatz (Echtzeit)</h3>
-              <p className="text-xs text-slate-400 font-normal">RX / TX Bandbreite</p>
+              <h3 className="text-sm font-semibold text-white tracking-tight">Netzwerk-Durchsatz (Echtzeit)</h3>
+              <p className="text-xs text-neutral-500 font-normal">RX / TX Bandbreite</p>
             </div>
-            <div className="flex items-center gap-4 text-xs font-medium">
+            <div className="flex items-center gap-4 text-xs font-medium font-mono">
               <span className="flex items-center gap-1.5 text-emerald-400">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" /> Download
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Download
               </span>
               <span className="flex items-center gap-1.5 text-amber-400">
-                <span className="w-2 h-2 rounded-full bg-amber-400" /> Upload
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Upload
               </span>
             </div>
           </div>
-          <div className="h-56 w-full">
+          <div className="h-52 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="rxGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="txGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15} />
                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="time" stroke="#475569" fontSize={11} tickLine={false} />
-                <YAxis stroke="#475569" fontSize={11} tickLine={false} tickFormatter={(v) => formatBytes(v)} />
+                <XAxis dataKey="time" stroke="#525252" fontSize={10} tickLine={false} />
+                <YAxis stroke="#525252" fontSize={10} tickLine={false} tickFormatter={(v) => formatBytes(v)} />
                 <Tooltip
                   formatter={(val: any) => formatBps(val)}
-                  contentStyle={{ backgroundColor: '#151b26', borderColor: '#232d3f', borderRadius: '0.5rem', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#141414', borderColor: '#282828', borderRadius: '0.375rem', fontSize: '11px', color: '#f5f5f5' }}
                 />
                 <Area type="monotone" dataKey="rx" stroke="#10b981" fillOpacity={1} fill="url(#rxGrad)" strokeWidth={1.5} isAnimationActive={false} />
                 <Area type="monotone" dataKey="tx" stroke="#f59e0b" fillOpacity={1} fill="url(#txGrad)" strokeWidth={1.5} isAnimationActive={false} />
@@ -323,31 +309,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Active Containers Quick Grid */}
-      <div className="p-5 rounded-lg bg-[#151b26] border border-[#232d3f] shadow-xs">
-        <div className="flex items-center justify-between mb-4">
+      {/* Active Containers (Direct Canvas Table, Tailscale style) */}
+      <div className="pt-2">
+        <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-sm font-bold text-white tracking-tight">Laufende Container ({counts.running})</h3>
-            <p className="text-xs text-slate-400 font-normal">Live-Statistiken aller aktiven Instanzen</p>
+            <h3 className="text-base font-semibold text-white tracking-tight">Aktive Container ({counts.running})</h3>
+            <p className="text-xs text-neutral-400 font-normal">Live-Statistiken aller aktuell ausgeführten Instanzen</p>
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-[#232d3f] text-slate-400 uppercase tracking-wider text-[11px] font-semibold bg-[#0e121b]/60">
-                <th className="py-2.5 px-3 font-semibold">Container</th>
-                <th className="py-2.5 px-3 font-semibold">Status</th>
-                <th className="py-2.5 px-3 font-semibold">CPU</th>
-                <th className="py-2.5 px-3 font-semibold">RAM</th>
-                <th className="py-2.5 px-3 font-semibold">Netzwerk RX/TX</th>
-                <th className="py-2.5 px-3 font-semibold">Uptime</th>
+              <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold">
+                <th className="pb-3 px-3 font-semibold">Container</th>
+                <th className="pb-3 px-3 font-semibold">Status</th>
+                <th className="pb-3 px-3 font-semibold">CPU</th>
+                <th className="pb-3 px-3 font-semibold">RAM</th>
+                <th className="pb-3 px-3 font-semibold">Netzwerk RX/TX</th>
+                <th className="pb-3 px-3 font-semibold">Uptime</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#232d3f]/60">
+            <tbody className="divide-y divide-[#1f1f1f]">
               {containers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-6 text-center text-slate-400 font-normal">
+                  <td colSpan={6} className="py-8 text-center text-neutral-500 font-normal">
                     Keine Container auf diesem Server gefunden.
                   </td>
                 </tr>
@@ -356,29 +342,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <tr
                     key={c.id}
                     onClick={() => onSelectContainer(c.id)}
-                    className="hover:bg-[#1a2230]/60 cursor-pointer transition-colors"
+                    className="hover:bg-white/[0.02] cursor-pointer transition-colors"
                   >
-                    <td className="py-3 px-3 font-medium text-white flex items-center gap-2">
-                      <span className="font-bold text-slate-100">{c.name}</span>
-                      <span className="text-[10px] text-slate-400 px-1.5 py-0.5 rounded bg-[#0e121b] border border-[#232d3f]">{c.shortId}</span>
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-white text-[13px] hover:underline">{c.name}</span>
+                        <span className="text-[10px] text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-[#1c1c1c] border border-[#2a2a2a]">{c.shortId}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-3">
                       <StatusBadge status={c.state} />
                     </td>
-                    <td className="py-3 px-3 text-slate-300 tabular-nums">
+                    <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
                       {c.stats?.cpuPercent.value !== null && c.stats?.cpuPercent.value !== undefined
                         ? formatPercent(c.stats.cpuPercent.value)
                         : '—'}
                     </td>
-                    <td className="py-3 px-3 text-slate-300 tabular-nums">
+                    <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
                       {c.stats?.memUsage.value !== null && c.stats?.memUsage.value !== undefined
                         ? `${formatBytes(c.stats.memUsage.value)} (${formatPercent(c.stats.memPercent.value)})`
                         : '—'}
                     </td>
-                    <td className="py-3 px-3 text-slate-300 tabular-nums">
+                    <td className="py-3 px-3 font-mono text-neutral-400 tabular-nums">
                       ↓ {formatBps(c.stats?.netRxBps.value)} · ↑ {formatBps(c.stats?.netTxBps.value)}
                     </td>
-                    <td className="py-3 px-3 font-normal text-slate-400">
+                    <td className="py-3 px-3 font-mono text-neutral-400">
                       {c.startedAt ? formatUptime(Math.floor((Date.now() - new Date(c.startedAt).getTime()) / 1000)) : '—'}
                     </td>
                   </tr>
