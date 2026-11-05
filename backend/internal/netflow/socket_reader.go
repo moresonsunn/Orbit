@@ -207,3 +207,4 @@ func parseAddr(hexAddr string, isV6 bool) (string, uint16, bool) {
 	ip := net.IP(v6)
 	return ip.String(), uint16(portNum), true
 }
+

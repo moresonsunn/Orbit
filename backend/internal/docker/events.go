@@ -233,3 +233,4 @@ func (ew *EventWatcher) RecentEvents(ctx context.Context, limit int) ([]DockerEv
 	}
 	return events, rows.Err()
 }
+

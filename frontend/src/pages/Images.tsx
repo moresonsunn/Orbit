@@ -163,3 +163,4 @@ export const ImagesPage: React.FC<ImagesPageProps> = ({ authStatus }) => {
     </div>
   );
 };
+

@@ -121,3 +121,4 @@ func TestCalculatorCompute(t *testing.T) {
 		t.Errorf("expected 100%% cpu, got %f", *st2.CPUPercent.Value)
 	}
 }
+

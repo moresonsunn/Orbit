@@ -98,3 +98,4 @@ func (c *Collector) detectMounts() []DiskMount {
 
 	return mounts
 }
+

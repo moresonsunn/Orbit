@@ -155,3 +155,4 @@ func GetSession(ctx context.Context) (*auth.Session, bool) {
 	sess, ok := ctx.Value(sessionKey).(*auth.Session)
 	return sess, ok && sess != nil
 }
+

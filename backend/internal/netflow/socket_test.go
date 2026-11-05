@@ -47,3 +47,4 @@ func TestClassifyPort(t *testing.T) {
 		t.Errorf("expected UNKNOWN for 9999")
 	}
 }
+

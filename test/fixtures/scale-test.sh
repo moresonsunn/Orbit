@@ -16,3 +16,4 @@ elif [ "$ACTION" = "down" ]; then
   docker ps -q --filter "label=orbit.test=scale" | xargs -r docker rm -f > /dev/null
   echo "Cleanup complete."
 fi
+

@@ -86,3 +86,4 @@ Jeder Messwert besitzt einen expliziten Status:
 - `no_permission`: Zugriff verweigert.
 
 Das Frontend stellt niemals `0 %` dar, wenn ein Wert in Wahrheit nicht erfasst werden konnte.
+

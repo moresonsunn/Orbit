@@ -135,3 +135,4 @@ export const LogsPage: React.FC<LogsPageProps> = ({ containers }) => {
     </div>
   );
 };
+

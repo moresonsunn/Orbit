@@ -16,3 +16,4 @@ if ($Action -eq "up") {
     }
     Write-Host "Cleanup complete."
 }
+

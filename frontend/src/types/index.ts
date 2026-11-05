@@ -425,3 +425,4 @@ export interface Settings {
     minSeverity: 'info' | 'warning' | 'critical';
   };
 }
+

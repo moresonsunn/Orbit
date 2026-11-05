@@ -342,3 +342,4 @@ func (s *Server) HandleNetworkRemove(w http.ResponseWriter, r *http.Request) {
 	s.inv.RefreshResources(r.Context(), "networks")
 	writeJSON(w, http.StatusOK, map[string]string{"message": "Netzwerk entfernt."})
 }
+

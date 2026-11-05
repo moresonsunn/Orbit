@@ -28,3 +28,4 @@ func (p *NVMLProvider) Shutdown() {}
 func (p *NVMLProvider) Collect(ctx context.Context) ([]DeviceMetrics, error) {
 	return nil, nil
 }
+

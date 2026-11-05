@@ -91,3 +91,4 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onSuccess }) => 
     </div>
   );
 };
+

@@ -160,3 +160,4 @@ export const GPUPage: React.FC = () => {
     </div>
   );
 };
+

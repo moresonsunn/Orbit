@@ -90,3 +90,4 @@ func TestInitialSetupAndLogin(t *testing.T) {
 		t.Errorf("expected username admin, got %s", valSess.Username)
 	}
 }
+

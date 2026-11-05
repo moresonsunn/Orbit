@@ -68,10 +68,11 @@ func SetupRouter(server *Server, hub *realtime.Hub, spaFS fs.FS) http.Handler {
 			authGroup.Get("/netflow", server.HandleNetflow)
 			authGroup.Get("/gpu", server.HandleGPU)
 
-			// Events & Alerts
+			// Events & Alerts & Audit
 			authGroup.Get("/events", server.HandleEvents)
 			authGroup.Get("/alerts", server.HandleAlerts)
 			authGroup.Post("/alerts/{id}/ack", server.HandleAckAlert)
+			authGroup.Get("/audit", server.HandleAuditLog)
 
 			// Settings
 			authGroup.Get("/settings", server.HandleGetSettings)

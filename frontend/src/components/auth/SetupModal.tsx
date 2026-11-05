@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Key, Lock, User, AlertCircle } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, setCSRFToken } from '../../lib/api';
 
 interface SetupModalProps {
   isOpen: boolean;
@@ -32,7 +32,10 @@ export const SetupModal: React.FC<SetupModalProps> = ({ isOpen, onSuccess }) => 
     setError(null);
 
     try {
-      await api.setup({ token: token.trim(), username: username.trim(), password });
+      const res = await api.setup({ token: token.trim(), username: username.trim(), password });
+      if (res.csrfToken) {
+        setCSRFToken(res.csrfToken);
+      }
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Setup fehlgeschlagen');
@@ -133,3 +136,4 @@ export const SetupModal: React.FC<SetupModalProps> = ({ isOpen, onSuccess }) => 
     </div>
   );
 };
+

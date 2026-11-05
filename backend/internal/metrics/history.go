@@ -184,6 +184,31 @@ func (hs *HistoryStore) flushBatch(ctx context.Context, batch []sampleQueueItem)
 		return
 	}
 
+	// 1. Resolve all series IDs in advance BEFORE opening the transaction.
+	// This ensures no queries are executed against hs.store.DB while tx holds the connection,
+	// preventing connection pool deadlocks when MaxOpenConns is limited.
+	type preparedItem struct {
+		seriesID int64
+		ts       int64
+		value    float64
+	}
+	items := make([]preparedItem, 0, len(batch))
+	for _, item := range batch {
+		sID, err := hs.getOrCreateSeriesID(ctx, item.key)
+		if err != nil {
+			continue
+		}
+		items = append(items, preparedItem{
+			seriesID: sID,
+			ts:       item.ts,
+			value:    item.value,
+		})
+	}
+
+	if len(items) == 0 {
+		return
+	}
+
 	tx, err := hs.store.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return
@@ -203,12 +228,8 @@ func (hs *HistoryStore) flushBatch(ctx context.Context, batch []sampleQueueItem)
 	}
 	defer stmt.Close()
 
-	for _, item := range batch {
-		sID, err := hs.getOrCreateSeriesID(ctx, item.key)
-		if err != nil {
-			continue
-		}
-		_, _ = stmt.ExecContext(ctx, sID, item.ts, item.value, item.value, item.value)
+	for _, item := range items {
+		_, _ = stmt.ExecContext(ctx, item.seriesID, item.ts, item.value, item.value, item.value)
 	}
 
 	_ = tx.Commit()
@@ -316,3 +337,4 @@ func (hs *HistoryStore) Query(ctx context.Context, seriesKey string, from, to in
 		Points: points,
 	}, nil
 }
+

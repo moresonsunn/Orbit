@@ -30,3 +30,4 @@ services:
     # Run with docker socket GID to access /var/run/docker.sock without root privileges
     group_add:
       - "${DOCKER_GID:-999}"
+

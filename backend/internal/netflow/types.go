@@ -82,3 +82,4 @@ type NetflowSnapshot struct {
 	Connections    []SocketConnection `json:"connections"`
 	ProtocolStats  []ProtocolSummary  `json:"protocolStats"`
 }
+

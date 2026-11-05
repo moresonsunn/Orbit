@@ -155,3 +155,4 @@ func (p *DRMProvider) Collect(ctx context.Context) ([]DeviceMetrics, error) {
 func mathRound2(v float64) float64 {
 	return float64(int64(v*100+0.5)) / 100
 }
+

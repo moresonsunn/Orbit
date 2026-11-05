@@ -144,3 +144,4 @@ Wenn dein CasaOS-Server über eine NVIDIA GPU verfügt, installiere das [NVIDIA 
               count: all
               capabilities: [gpu, utility]
 ```
+

@@ -98,3 +98,4 @@ type SystemInfo struct {
 	Architecture  string      `json:"architecture"`
 	UptimeSeconds model.Gauge `json:"uptimeSeconds"`
 }
+

@@ -86,3 +86,4 @@ cpu1 750 0 750 4500 0 0 0 0 0 0
 		t.Errorf("expected 50%% cpu, got %f", *m2.CPU.TotalPercent.Value)
 	}
 }
+

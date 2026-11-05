@@ -123,6 +123,44 @@ func (s *Server) HandleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ip := r.RemoteAddr
+	if s.cfg.TrustProxy {
+		if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+			parts := strings.Split(xff, ",")
+			ip = strings.TrimSpace(parts[0])
+		}
+	}
+
+	// Auto-login upon completing initial setup
+	sess, token, err := s.authMgr.Login(r.Context(), req.Username, req.Password, ip, r.UserAgent())
+	if err == nil {
+		secure := false
+		if s.cfg.SecureCookies == "true" || (s.cfg.SecureCookies == "auto" && r.TLS != nil) {
+			secure = true
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "orbit_session",
+			Value:    token,
+			Path:     "/",
+			Expires:  sess.ExpiresAt,
+			HttpOnly: true,
+			Secure:   secure,
+			SameSite: http.SameSiteStrictMode,
+		})
+
+		writeJSON(w, http.StatusOK, map[string]interface{}{
+			"message": "Setup erfolgreich abgeschlossen.",
+			"user": map[string]interface{}{
+				"id":       sess.UserID,
+				"username": sess.Username,
+				"role":     sess.Role,
+			},
+			"csrfToken": sess.CSRFToken,
+		})
+		return
+	}
+
 	writeJSON(w, http.StatusOK, map[string]string{"message": "Setup erfolgreich abgeschlossen. Du kannst dich nun anmelden."})
 }
 
@@ -446,6 +484,47 @@ func (s *Server) HandleAlerts(w http.ResponseWriter, r *http.Request) {
 		allAlerts = []alerts.Alert{}
 	}
 	writeJSON(w, http.StatusOK, allAlerts)
+}
+
+func (s *Server) HandleAuditLog(w http.ResponseWriter, r *http.Request) {
+	limit := 100
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if val, err := strconv.Atoi(l); err == nil && val > 0 {
+			limit = val
+		}
+	}
+
+	rows, err := s.store.DB.QueryContext(r.Context(),
+		`SELECT id, ts, COALESCE(user_id, 0), COALESCE(username, ''), action, COALESCE(target, ''), result, COALESCE(ip, ''), COALESCE(details, '')
+		 FROM audit_log ORDER BY ts DESC, id DESC LIMIT ?`, limit,
+	)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "Audit-Log konnte nicht abgerufen werden: "+err.Error())
+		return
+	}
+	defer rows.Close()
+
+	type AuditEntry struct {
+		ID        int64  `json:"id"`
+		Timestamp int64  `json:"timestamp"`
+		UserID    int64  `json:"userId"`
+		Username  string `json:"username"`
+		Action    string `json:"action"`
+		Target    string `json:"target"`
+		Result    string `json:"result"`
+		IP        string `json:"ip"`
+		Details   string `json:"details"`
+	}
+
+	entries := make([]AuditEntry, 0)
+	for rows.Next() {
+		var e AuditEntry
+		if err := rows.Scan(&e.ID, &e.Timestamp, &e.UserID, &e.Username, &e.Action, &e.Target, &e.Result, &e.IP, &e.Details); err == nil {
+			entries = append(entries, e)
+		}
+	}
+
+	writeJSON(w, http.StatusOK, entries)
 }
 
 func (s *Server) HandleAckAlert(w http.ResponseWriter, r *http.Request) {

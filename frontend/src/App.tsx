@@ -53,6 +53,13 @@ export const App: React.FC = () => {
       }
       if (auth.needsSetup) {
         setShowSetupModal(true);
+        setShowLoginModal(false);
+      } else if (!auth.authenticated) {
+        setShowSetupModal(false);
+        setShowLoginModal(true);
+      } else {
+        setShowSetupModal(false);
+        setShowLoginModal(false);
       }
 
       const [sys, metrics, conts, gpu, al] = await Promise.all([
@@ -216,3 +223,4 @@ export const App: React.FC = () => {
 };
 
 export default App;
+

@@ -31,3 +31,4 @@ func TestGPUManagerNoGPUFallback(t *testing.T) {
 		t.Errorf("expected fallback message 'Keine kompatible GPU erkannt.', got '%s'", telemetry.Message)
 	}
 }
+

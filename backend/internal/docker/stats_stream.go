@@ -256,3 +256,4 @@ func (ss *StatsStreamer) streamStats(ctx context.Context, worker *containerWorke
 		}
 	}
 }
+

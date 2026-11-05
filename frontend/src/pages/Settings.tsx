@@ -341,3 +341,4 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
     </div>
   );
 };
+

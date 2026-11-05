@@ -58,3 +58,4 @@ Orbit implementiert daher ein mehrschichtiges Sicherheitskonzept (Defense-in-Dep
 - Alle Host-Mounts (`/host/proc`, `/host/sys`, `/host/etc/os-release`) sind strikt `read-only` (`:ro`).
 - Sensitive Daten wie Environment-Variablen im Inspect-Tab sind für Nicht-Administratoren unkenntlich gemacht.
 - Vollständiges Audit-Logging (`audit_log`): Jede administrative Aktion wird mit Zeitstempel, Benutzer, IP und Ergebnis protokolliert.
+

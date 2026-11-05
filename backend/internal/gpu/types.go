@@ -47,3 +47,4 @@ type Provider interface {
 	Collect(ctx context.Context) ([]DeviceMetrics, error)
 	Shutdown()
 }
+

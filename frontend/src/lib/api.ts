@@ -62,7 +62,7 @@ export const api = {
   // Auth
   getAuthStatus: () => request<AuthStatus>('/auth/status'),
   setup: (data: { token: string; username: string; password: string }) =>
-    request<{ message: string }>('/auth/setup', { method: 'POST', body: JSON.stringify(data) }),
+    request<{ message: string; user?: any; csrfToken?: string }>('/auth/setup', { method: 'POST', body: JSON.stringify(data) }),
   login: (data: { username: string; password: string }) =>
     request<{ user: any; csrfToken: string }>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
   logout: () => request<{ message: string }>('/auth/logout', { method: 'POST' }),
@@ -145,3 +145,4 @@ export const api = {
   getSettings: () => request<Settings>('/settings'),
   updateSettings: (s: Settings) => request<Settings>('/settings', { method: 'PUT', body: JSON.stringify(s) }),
 };
+
