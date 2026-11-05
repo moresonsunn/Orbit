@@ -1,0 +1,32 @@
+services:
+  orbit:
+    image: ghcr.io/phili/orbit:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: orbit
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - ORBIT_LISTEN=:8787
+      - ORBIT_DATA_DIR=/data
+      - ORBIT_ENABLE_ACTIONS=false       # standardmäßig rein lesendes Monitoring
+      - ORBIT_ENABLE_DESTRUCTIVE=false   # destruktive Aktionen separat gesperrt
+      - ORBIT_GPU=auto
+      - ORBIT_EBPF=auto
+      - ORBIT_LOG_LEVEL=info
+    volumes:
+      # Persistent SQLite database and settings
+      - /DATA/AppData/orbit/data:/data
+      # Docker Engine Socket
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Host System Diagnostics (read-only)
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    security_opt:
+      - no-new-privileges:true
+    # Run with docker socket GID to access /var/run/docker.sock without root privileges
+    group_add:
+      - "${DOCKER_GID:-999}"

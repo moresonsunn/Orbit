@@ -1,0 +1,55 @@
+name: orbit
+services:
+  orbit:
+    image: ghcr.io/phili/orbit:latest
+    container_name: orbit
+    restart: unless-stopped
+    ports:
+      - "8787:8787"
+    environment:
+      - ORBIT_LISTEN=:8787
+      - ORBIT_DATA_DIR=/data
+      - ORBIT_ENABLE_ACTIONS=false
+      - ORBIT_ENABLE_DESTRUCTIVE=false
+      - ORBIT_GPU=auto
+      - ORBIT_EBPF=auto
+    volumes:
+      - /DATA/AppData/orbit/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      ports:
+        - container: "8787"
+          description:
+            en_us: "Orbit Web UI"
+            de_de: "Orbit Weboberfläche"
+      volumes:
+        - container: /data
+          description:
+            en_us: "Orbit Database and Settings"
+            de_de: "Orbit Datenbank und Einstellungen"
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: orbit
+  author: "Orbit Team"
+  category: "Utilities"
+  description:
+    en_us: "Orbit is a self-hosted Docker infrastructure, management and real-time monitoring platform with network topology visualization, container metrics, and GPU telemetry."
+    de_de: "Orbit ist eine moderne Self-hosted Docker-Infrastruktur-, Verwaltungs- und Echtzeitüberwachungs-Plattform mit interaktiver Netzwerktopologie, Container-Metriken und GPU-Telemetrie."
+  developer: "Orbit"
+  icon: "https://raw.githubusercontent.com/phili/Orbit/main/frontend/public/orbit-icon.svg"
+  screenshot_link: []
+  tagline:
+    en_us: "Self-hosted Docker Infrastructure & Real-Time Monitoring Platform"
+    de_de: "Self-hosted Docker-Infrastruktur und Echtzeitüberwachung"
+  title:
+    en_us: "Orbit"
+    de_de: "Orbit"
+  index: "/#/"
+  port_map: "8787"

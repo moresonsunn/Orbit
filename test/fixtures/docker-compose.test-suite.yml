@@ -1,0 +1,63 @@
+services:
+  # 1. Normal Running Container
+  test-healthy:
+    image: alpine:latest
+    container_name: test-orbit-healthy
+    command: ["sh", "-c", "while true; do sleep 1; done"]
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 5s
+      timeout: 2s
+      retries: 2
+    labels:
+      orbit.test: "true"
+      com.docker.compose.project: "orbit-tests"
+
+  # 2. Unhealthy Container (Healthcheck deliberately fails)
+  test-unhealthy:
+    image: alpine:latest
+    container_name: test-orbit-unhealthy
+    command: ["sh", "-c", "while true; do sleep 1; done"]
+    healthcheck:
+      test: ["CMD", "false"]
+      interval: 3s
+      timeout: 1s
+      retries: 1
+    labels:
+      orbit.test: "true"
+      com.docker.compose.project: "orbit-tests"
+
+  # 3. CPU Consumer Container
+  test-cpu-load:
+    image: alpine:latest
+    container_name: test-orbit-cpu-load
+    command: ["sh", "-c", "while true; do :; done"]
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+    labels:
+      orbit.test: "true"
+      com.docker.compose.project: "orbit-tests"
+
+  # 4. Memory Consumer Container
+  test-mem-load:
+    image: alpine:latest
+    container_name: test-orbit-mem-load
+    command: ["sh", "-c", "head -c 30M /dev/urandom | cat > /dev/null; while true; do sleep 1; done"]
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    labels:
+      orbit.test: "true"
+      com.docker.compose.project: "orbit-tests"
+
+  # 5. Network Traffic Generator Container
+  test-traffic:
+    image: alpine:latest
+    container_name: test-orbit-traffic
+    command: ["sh", "-c", "while true; do wget -q -O /dev/null http://example.com || true; sleep 2; done"]
+    labels:
+      orbit.test: "true"
+      com.docker.compose.project: "orbit-tests"
