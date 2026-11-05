@@ -118,20 +118,20 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Container nach Name, Image oder ID durchsuchen..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-cyan-500"
+              className="w-full pl-9 pr-4 py-2 bg-slate-950/70 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20"
             />
           </div>
         </div>
 
         {/* State Filter Tabs */}
-        <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
+        <div className="flex items-center gap-1 bg-slate-950/70 p-1 rounded-xl border border-slate-800 self-start sm:self-auto">
           {(['all', 'running', 'stopped', 'unhealthy'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setFilterState(tab)}
               className={`px-3 py-1 rounded-lg text-xs font-medium capitalize transition-all ${
                 filterState === tab
-                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-sm'
+                  ? 'bg-slate-800/90 text-white border border-slate-700/60 shadow-xs'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
@@ -149,15 +149,15 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
 
       {/* Bulk Action Bar (visible when items selected) */}
       {selectedIDs.length > 0 && (
-        <div className="flex items-center justify-between bg-cyan-950/40 border border-cyan-800/60 p-3 rounded-xl animate-in slide-in-from-top-2 duration-200">
-          <span className="text-xs font-semibold text-cyan-300 font-mono">
+        <div className="flex items-center justify-between bg-[#0f1422] border border-slate-700/80 p-3 rounded-xl shadow-md animate-in slide-in-from-top-2 duration-200">
+          <span className="text-xs font-medium text-slate-200">
             {selectedIDs.length} Container ausgewählt
           </span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setActiveModal({ action: 'bulk-start' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Starten</span>
@@ -165,7 +165,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             <button
               onClick={() => setActiveModal({ action: 'bulk-stop' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/80 hover:bg-amber-600 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
               <span>Stoppen</span>
@@ -173,7 +173,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
             <button
               onClick={() => setActiveModal({ action: 'bulk-restart' })}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600/80 hover:bg-indigo-600 disabled:opacity-40 text-white rounded-lg text-xs font-semibold transition-all shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600/90 hover:bg-blue-600 disabled:opacity-40 text-white rounded-lg text-xs font-medium transition-all shadow-xs"
             >
               <RotateCw className="w-3.5 h-3.5" />
               <span>Neustarten</span>
@@ -189,15 +189,15 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
       )}
 
       {/* Main Container Table */}
-      <div className="overflow-hidden rounded-2xl bg-slate-900/60 border border-slate-800/80 shadow-sm">
+      <div className="overflow-hidden rounded-xl bg-[#0f1422]/80 border border-slate-800/80 shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-400 uppercase tracking-wider font-mono bg-slate-950/40">
+              <tr className="border-b border-slate-800/80 text-slate-400 uppercase tracking-wider text-[11px] font-medium bg-slate-950/40">
                 <th className="py-3 px-4 w-8">
                   <button onClick={toggleSelectAll} className="text-slate-400 hover:text-white">
                     {selectedIDs.length > 0 && selectedIDs.length === filtered.length ? (
-                      <CheckSquare className="w-4 h-4 text-cyan-400" />
+                      <CheckSquare className="w-4 h-4 text-sky-400" />
                     ) : (
                       <UncheckedSquare className="w-4 h-4" />
                     )}

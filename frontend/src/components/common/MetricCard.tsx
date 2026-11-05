@@ -29,60 +29,59 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const isAvailable = !gauge || gauge.status === 'ok';
   const isPending = gauge?.status === 'pending';
   const isUnsupported = gauge?.status === 'unsupported';
-  const isUnavailable = gauge?.status === 'unavailable' || gauge?.status === 'no_permission';
 
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-xl bg-slate-900/60 border border-slate-800/80 p-4 transition-all duration-200 hover:border-slate-700/80 shadow-sm',
-        alertThresholdExceeded && 'border-rose-500/50 bg-rose-950/10',
+        'relative overflow-hidden rounded-xl bg-[#0f1422]/80 border border-slate-800/80 p-4 transition-all duration-200 hover:border-slate-700/80 shadow-xs backdrop-blur-xs',
+        alertThresholdExceeded && 'border-rose-500/50 bg-rose-950/15',
         className
       )}
     >
-      <div className="flex items-center justify-between text-slate-400 mb-2">
-        <span className="text-xs font-medium uppercase tracking-wider text-slate-400">{title}</span>
-        {icon && <div className="text-slate-400">{icon}</div>}
+      <div className="flex items-center justify-between text-slate-400 mb-2.5">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-slate-400">{title}</span>
+        {icon && <div className="p-1 rounded-md bg-slate-800/40 border border-slate-700/40 text-slate-400">{icon}</div>}
       </div>
 
-      <div className="flex items-baseline gap-1.5 my-1">
+      <div className="flex items-baseline gap-1 my-1">
         {isAvailable ? (
           <>
-            <span className="text-2xl font-bold font-mono tracking-tight text-white">
+            <span className="text-2xl font-semibold tracking-tight text-white tabular-nums">
               {formattedValue ?? (gauge?.value !== null && gauge?.value !== undefined ? gauge.value : '—')}
             </span>
-            {unit && <span className="text-xs text-slate-400 font-medium">{unit}</span>}
+            {unit && <span className="text-xs text-slate-400 font-medium ml-0.5">{unit}</span>}
           </>
         ) : isPending ? (
-          <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-950/40 px-2 py-1 rounded border border-amber-800/50">
+          <div className="flex items-center gap-1.5 text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20">
             <Clock className="w-3.5 h-3.5 animate-spin" />
             <span>Erfasse Messwert...</span>
           </div>
         ) : isUnsupported ? (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/60 px-2 py-1 rounded border border-slate-700/50">
-            <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/40 px-2 py-1 rounded-md border border-slate-700/40">
+            <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
             <span>Nicht unterstützt</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/40 px-2 py-1 rounded border border-slate-700/40" title={gauge?.reason}>
-            <AlertCircle className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex items-center gap-1.5 text-xs text-slate-400 bg-slate-800/30 px-2 py-1 rounded-md border border-slate-700/30" title={gauge?.reason}>
+            <AlertCircle className="w-3.5 h-3.5 text-slate-500" />
             <span>Nicht verfügbar</span>
           </div>
         )}
       </div>
 
       {progressPercent !== undefined && isAvailable && (
-        <div className="w-full bg-slate-800/80 h-1.5 rounded-full overflow-hidden mt-2.5">
+        <div className="w-full bg-slate-800/60 h-1.5 rounded-full overflow-hidden mt-2.5">
           <div
             className={cn(
               'h-full transition-all duration-500 rounded-full',
-              progressPercent > 85 ? 'bg-rose-500' : progressPercent > 70 ? 'bg-amber-500' : 'bg-cyan-500'
+              progressPercent > 85 ? 'bg-rose-500' : progressPercent > 70 ? 'bg-amber-500' : 'bg-sky-500'
             )}
             style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
           />
         </div>
       )}
 
-      {subtitle && <p className="text-xs text-slate-400 mt-2 font-mono truncate">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-slate-400 mt-2 font-normal truncate">{subtitle}</p>}
     </div>
   );
 };

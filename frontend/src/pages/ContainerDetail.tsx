@@ -127,23 +127,23 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
   return (
     <div className="space-y-4 animate-in fade-in duration-200">
       {/* Top Bar with Container Info & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800/80">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0f1422]/80 p-4 rounded-xl border border-slate-800/80 shadow-xs">
         <div className="flex items-center gap-3">
           <button
             onClick={onBack}
-            className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+            className="p-2 rounded-lg bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-700/80 transition-colors"
             title="Zurück zur Liste"
           >
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-bold text-white tracking-tight">{c.name}</h2>
+              <h2 className="text-base font-semibold text-white tracking-tight">{c.name}</h2>
               <StatusBadge status={c.state} />
               {c.health && c.health !== 'none' && <StatusBadge status={c.health} />}
             </div>
-            <p className="text-xs text-slate-400 font-mono mt-0.5">
-              ID: {c.shortId} • Image: {c.image}
+            <p className="text-xs text-slate-400 mt-0.5">
+              ID: <span className="font-mono text-slate-300">{c.shortId}</span> · Image: <span className="font-mono text-slate-300">{c.image}</span>
             </p>
           </div>
         </div>
@@ -159,7 +159,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                   loadData();
                 }}
                 disabled={!actionsEnabled}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white rounded-lg text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
               >
                 <RotateCw className="w-3.5 h-3.5" />
                 <span>Neustarten</span>
@@ -171,7 +171,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                   loadData();
                 }}
                 disabled={!actionsEnabled}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/80 hover:bg-amber-600 disabled:opacity-30 text-white rounded-lg text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600/90 hover:bg-amber-600 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
                 <span>Stoppen</span>
@@ -185,7 +185,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
                 loadData();
               }}
               disabled={!actionsEnabled}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/80 hover:bg-emerald-600 disabled:opacity-30 text-white rounded-lg text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/90 hover:bg-emerald-600 disabled:opacity-30 text-white rounded-lg text-xs font-medium transition-colors"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Starten</span>
@@ -195,7 +195,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       </div>
 
       {/* Detail Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800/80 pb-2">
+      <div className="flex items-center gap-1.5 border-b border-slate-800/80 pb-2">
         {[
           { id: 'overview', label: 'Overview', icon: Info },
           { id: 'performance', label: 'Performance', icon: Activity },
@@ -209,13 +209,13 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 isActive
-                  ? 'bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 shadow-sm'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                  ? 'bg-slate-800/90 text-white border border-slate-700/60 shadow-xs'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/40 border border-transparent'
               }`}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-sky-400' : 'text-slate-400'}`} />
               <span>{tab.label}</span>
             </button>
           );

@@ -53,18 +53,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <aside
       className={cn(
-        'relative flex flex-col h-screen bg-[#070b14] border-r border-slate-800/80 transition-all duration-300 z-30 select-none',
-        collapsed ? 'w-16' : 'w-64'
+        'relative flex flex-col h-screen bg-[#0b0f17] border-r border-slate-800/70 transition-all duration-300 z-30 select-none',
+        collapsed ? 'w-16' : 'w-60'
       )}
     >
       {/* Brand Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/80">
+      <div className="flex items-center justify-between h-16 px-4 border-b border-slate-800/70">
         <div className="flex items-center gap-3 overflow-hidden cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
-          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-600 to-indigo-600 shadow-md shadow-cyan-900/20 text-white font-bold text-sm">
-            O
+          <div className="relative flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 shadow-sm text-white font-semibold text-sm shrink-0">
+            <span className="tracking-tighter">O</span>
             <span
               className={cn(
-                'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#070b14]',
+                'absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#0b0f17]',
                 dockerConnected ? 'bg-emerald-400' : 'bg-rose-500 animate-pulse'
               )}
               title={dockerConnected ? 'Docker Daemon verbunden' : 'Docker Daemon getrennt'}
@@ -72,15 +72,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-bold text-base tracking-wide text-white font-mono">ORBIT</span>
-              <span className="text-[10px] text-slate-400 font-mono -mt-1 tracking-wider uppercase">Infrastructure</span>
+              <span className="font-semibold text-sm tracking-tight text-white">Orbit</span>
+              <span className="text-[10px] text-slate-400 font-normal tracking-wide uppercase">CasaOS Platform</span>
             </div>
           )}
         </div>
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors"
+          className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors"
           title={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -88,7 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
+      <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentTab === item.id;
@@ -97,17 +97,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
               className={cn(
-                'flex items-center w-full gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all group',
+                'flex items-center w-full gap-3 px-3 py-2 rounded-lg text-xs font-medium transition-all group',
                 isActive
-                  ? 'bg-cyan-950/60 text-cyan-300 border border-cyan-800/60 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
+                  ? 'bg-slate-800/90 text-white border border-slate-700/60 shadow-xs'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
               )}
               title={collapsed ? item.label : undefined}
             >
               <Icon
                 className={cn(
-                  'w-4 h-4 shrink-0 transition-transform group-hover:scale-110',
-                  isActive ? 'text-cyan-400' : 'text-slate-400 group-hover:text-slate-200'
+                  'w-4 h-4 shrink-0 transition-colors',
+                  isActive ? 'text-sky-400' : 'text-slate-400 group-hover:text-slate-200'
                 )}
               />
               {!collapsed && <span className="truncate">{item.label}</span>}
@@ -118,26 +118,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Read-Only Mode Notice if actions disabled */}
       {!collapsed && !authStatus?.features.enableActions && (
-        <div className="mx-3 mb-3 p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 text-[11px] text-slate-400 flex items-start gap-2">
-          <ShieldAlert className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-          <span>Monitoring-Modus aktiv. Aktionen deaktiviert.</span>
+        <div className="mx-2.5 mb-2.5 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400 flex items-start gap-2">
+          <ShieldAlert className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+          <span>Monitoring-Modus aktiv.</span>
         </div>
       )}
 
       {/* User Footer */}
-      <div className="p-3 border-t border-slate-800/80 flex items-center justify-between">
+      <div className="p-3 border-t border-slate-800/70 flex items-center justify-between">
         {!collapsed ? (
           <div className="flex items-center gap-2 overflow-hidden">
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
+            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-medium text-slate-300 shrink-0">
               {authStatus?.user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
             <div className="flex flex-col truncate">
               <span className="text-xs font-medium text-slate-200 truncate">{authStatus?.user?.username || 'Benutzer'}</span>
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider">{authStatus?.user?.role || 'Viewer'}</span>
+              <span className="text-[10px] text-slate-400 capitalize">{authStatus?.user?.role || 'Viewer'}</span>
             </div>
           </div>
         ) : (
-          <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-bold text-slate-300 mx-auto">
+          <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-medium text-slate-300 mx-auto">
             {authStatus?.user?.username?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
