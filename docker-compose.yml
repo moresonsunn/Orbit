@@ -1,0 +1,45 @@
+# Orbit - Self-hosted Docker Infrastructure, Management & Real-Time Monitoring Platform
+# Standalone & Development Deployment
+
+services:
+  orbit:
+    image: moresonsunn/orbit:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: orbit
+    restart: unless-stopped
+    ports:
+      - "${ORBIT_PORT:-8080}:8080"
+    environment:
+      - ORBIT_LISTEN=:8080
+      - ORBIT_DATA_DIR=/data
+      - ORBIT_ENABLE_ACTIONS=${ORBIT_ENABLE_ACTIONS:-false}
+      - ORBIT_ENABLE_DESTRUCTIVE=${ORBIT_ENABLE_DESTRUCTIVE:-false}
+      - ORBIT_GPU=${ORBIT_GPU:-auto}
+      - ORBIT_EBPF=${ORBIT_EBPF:-auto}
+      - ORBIT_LOG_LEVEL=${ORBIT_LOG_LEVEL:-info}
+    volumes:
+      - orbit_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    security_opt:
+      - no-new-privileges:true
+    group_add:
+      - "${DOCKER_GID:-999}"
+    healthcheck:
+      test: ["CMD", "/app/orbit", "-healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  orbit_data:

@@ -343,7 +343,7 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
                 <span>{filter.label}</span>
                 <span
                   className={cn(
-                    'px-1.5 py-0.2 rounded-full text-[10px] font-mono',
+                    'px-1.5 py-0.5 rounded-full text-[10px] font-mono',
                     isActive ? 'bg-blue-700 text-white' : 'bg-[#202020] text-neutral-400'
                   )}
                 >
@@ -634,8 +634,8 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
                                 subnetDetails.UtilizationPercent > 90
                                   ? 'bg-rose-500'
                                   : subnetDetails.UtilizationPercent > 70
-                                  ? 'bg-amber-500'
-                                  : 'bg-emerald-500'
+                                    ? 'bg-amber-500'
+                                    : 'bg-emerald-500'
                               )}
                               style={{
                                 width: `${Math.min(100, Math.max(1, subnetDetails.UtilizationPercent))}%`,
@@ -664,8 +664,8 @@ export const NetworksPage: React.FC<NetworksPageProps> = ({ authStatus }) => {
                           {net.Driver === 'host'
                             ? 'Host-Treiber: Container nutzen den Netzwerk-Stack des Host-Systems direkt ohne separates Docker-Subnetz.'
                             : net.Driver === 'none'
-                            ? 'None-Treiber: Vollständig isolierter Loopback-Namespace ohne externe Schnittstellen.'
-                            : 'Kein separates IPAM-Subnetz für dieses Netzwerk konfiguriert.'}
+                              ? 'None-Treiber: Vollständig isolierter Loopback-Namespace ohne externe Schnittstellen.'
+                              : 'Kein separates IPAM-Subnetz für dieses Netzwerk konfiguriert.'}
                         </span>
                       </div>
                     )}

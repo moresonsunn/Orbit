@@ -1,92 +1,201 @@
-# Challenger 1 Empirical Verification Report: Milestone M1 (Backend Telemetry & Enriched Endpoints)
+# Empirical Challenge Report: Sidebar Layout & Collision Verification
 
-**Verdict:** **APPROVE**  
+**Agent:** `challenger_1_m1` (Empirical Challenger: Critic, Specialist)  
 **Date:** 2026-11-06  
-**From:** `challenger_1_m1`  
-**To:** `orchestrator` / `parent` (`4572cb91-25c6-48e4-bf11-6d7c5a635dd0`)  
-**Type:** Hard Handoff (Empirical Challenge & Verification Complete)
+**Target:** `frontend/src/components/layout/Sidebar.tsx`  
+**Verdict:** **APPROVE**  
 
 ---
 
 ## 1. Observation
 
-### 1.1 Empirical Verification of `calculateSubnetDetails` (`backend/internal/api/handlers.go:412-517`)
-A dedicated empirical test harness was authored and executed in `backend/internal/api/`:
-- **Extreme CIDR Masks Tested:**
-  - `/32` (`192.168.1.50/32` with gateway): TotalIPs = 1, UsedIPs = 1, FreeIPs = 0, NetworkIP = "192.168.1.50", BroadcastIP = "192.168.1.50", UsableRange = "192.168.1.50", UtilizationPercent = 100.0%. PASS.
-  - `/32` (`10.5.5.5/32` without gateway): TotalIPs = 1, UsedIPs = 0, FreeIPs = 1, UsableRange = "10.5.5.5", UtilizationPercent = 0.0%. PASS.
-  - `/31` (`10.0.0.0/31` RFC 3021 point-to-point): TotalIPs = 2, UsedIPs = 2, FreeIPs = 0, NetworkIP = "10.0.0.0", BroadcastIP = "10.0.0.1", UsableRange = "10.0.0.0 - 10.0.0.1". PASS.
-  - `/30` (`10.0.0.0/30` 4 IPs): TotalIPs = 4, UsedIPs = 2, FreeIPs = 2, UsableRange = "10.0.0.1 - 10.0.0.2", BroadcastIP = "10.0.0.3". PASS.
-  - `/24` (`192.168.1.0/24` class C): TotalIPs = 256, UsableRange = "192.168.1.1 - 192.168.1.254", BroadcastIP = "192.168.1.255". Tested with containers inside and outside subnet; containers outside subnet (e.g. `10.0.0.1/24`) were properly excluded from `UsedIPs`. PASS.
-  - `/16` (`172.18.0.0/16` class B): TotalIPs = 65536, UsableRange = "172.18.0.1 - 172.18.255.254", BroadcastIP = "172.18.255.255". PASS.
-  - `/8` (`10.0.0.0/8` class A): TotalIPs = 16,777,216, UsableRange = "10.0.0.1 - 10.255.255.254", BroadcastIP = "10.255.255.255". No 32-bit integer overflow. PASS.
-  - Subnet invariant loop across all netmasks `/8` through `/32`: TotalIPs matches `1 << (32 - mask)`, `FreeIPs + UsedIPs == TotalIPs`, and `0 <= UtilizationPercent <= 100`. All 25 netmasks passed.
-  - Over-allocated containers test (more containers than total capacity): `FreeIPs` clamped to 0 (`freeIPs < 0` guard at line 496). PASS.
-  - Invalid inputs: empty subnet string `""`, invalid CIDR `999.999.999.999/24`, and IPv6 prefix `fd00::/64` all safely return `nil` without panics. PASS.
+Direct code inspection of `frontend/src/components/layout/Sidebar.tsx` and empirical execution of verification tests revealed the following:
 
-### 1.2 Empirical Stress-Testing of `AssessPortSecurity` (`backend/internal/netflow/protocols.go:56-113`)
-Executed an empirical test matrix of 11 ports across 15 host IP binding variants (165 test cases):
-- **Ports Tested:** 0, 22, 80, 443, 2375, 2376, 5432, 6379, 8080, 27017, 65535.
-- **Host IPs Tested:**
-  - Loopback: `127.0.0.1`, `::1`, `localhost`, `127.0.0.2` -> all 44 test cases classified as `level: "safe"`, `badge: "Safe"`.
-  - RFC 1918 & Link-Local Private: `172.18.0.2`, `10.0.0.5`, `192.168.1.100`, `169.254.1.1` -> all 44 test cases classified as `level: "internal"`, `badge: "Internal"`.
-  - Public & Wildcard Bindings: `0.0.0.0`, `::`, `""`, `*`, `203.0.113.195`, `198.51.100.4`, `2001:db8::1`:
-    - Encrypted ports (22, 443, 2376) -> classified as `level: "safe"`, `badge: "Safe"`.
-    - Sensitive database/daemon ports (2375, 5432, 6379, 27017) -> classified as `level: "critical"`, `badge: "Critical Risk"`.
-    - Unencrypted HTTP (80, 8080) -> classified as `level: "caution"`, `badge: "Caution"`.
-    - Unclassified boundary ports (0, 65535) -> classified as `level: "caution"`, `badge: "Caution"`.
-- All 165 test cases passed with zero discrepancies.
-
-### 1.3 Empirical Verification of `synthesizeContainerSockets` (`backend/internal/netflow/socket_reader.go:89-226`)
-Tested container synthesis under adverse and edge-case inputs:
-- Non-running containers (`State: "exited"`) produced 0 sockets. PASS.
-- Running containers with empty ports (`Ports: []`) and nil exposed ports produced 0 sockets. PASS.
-- Malformed exposed ports (`""`, `"invalid"`, `"999999/tcp"`, `"80/badproto"`, `"8080"`): valid port strings were parsed cleanly, while unparseable strings were skipped without panicking. PASS.
-- Complex command lines: `"/usr/lib/postgresql/16/bin/postgres" -D /var/lib/...` extracted `"postgres"` as `ProcessName`. PASS.
-- Multi-network container: accurately selected the first non-empty IP address (`10.0.1.25`) for internal socket bindings. PASS.
-- Zero-network container: correctly defaulted to `127.0.0.1` and evaluated security as `"safe"`. PASS.
-- Port deduplication: container defining port 3000 in both `Ports` and `ExposedPorts` yielded exactly 2 sockets (1 host binding, 1 internal listening), verifying no duplicate listening socket creation. PASS.
-
-### 1.4 Suite Execution & Artifact Cleanup
-- All temporary test files outside the agent working directory (`calculate_subnet_stress_test.go` and `empirical_stress_test.go`) were removed.
-- Full test suite execution:
-  ```powershell
-  cd backend; go test -count=1 ./...
+### 1.1 Code Structure & Class Declarations
+- **Sidebar Container (Line 55-58):**
+  ```tsx
+  <aside
+    className={cn(
+      'relative flex flex-col h-screen bg-[#141414] border-r border-[#222222] transition-all duration-300 z-30 select-none font-sans',
+      collapsed ? 'w-16' : 'w-56'
+    )}
+  >
   ```
-  Result: Exit code 0, all packages PASS (`internal/api` 0.208s, `internal/auth` 0.934s, `internal/docker` 0.926s, `internal/gpu` 0.927s, `internal/host` 0.310s, `internal/metrics` 0.165s, `internal/netflow` 0.145s).
-- Full build execution:
-  ```powershell
-  cd backend; go build ./...
+  Collapsed width is defined by Tailwind `w-16` ($4\text{rem} = 64\text{px}$). Expanded width is defined by `w-56` ($14\text{rem} = 224\text{px}$).
+
+- **Collapsed Header (Lines 61-87):**
+  ```tsx
+  {collapsed ? (
+    <div className="relative flex items-center justify-center h-14 border-b border-[#222222]">
+      {/* Centered Logo */}
+      <div
+        onClick={() => setCurrentTab('dashboard')}
+        className="relative flex items-center justify-center w-7 h-7 rounded-md bg-[#222222] text-neutral-300 font-bold text-xs cursor-pointer border border-[#2e2e2e] hover:border-neutral-500 transition-colors"
+        title="orbit.local (Dashboard)"
+      >
+        <span className="tracking-tighter">O</span>
+        <span
+          className={cn(
+            'absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#141414]',
+            dockerConnected ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'
+          )}
+          title={dockerConnected ? 'Docker Daemon verbunden' : 'Docker Daemon getrennt'}
+        />
+      </div>
+
+      {/* Floating Edge Expand Handle (Zero collision, perfectly positioned on border) */}
+      <button
+        onClick={() => setCollapsed(false)}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#1c1c1c] border border-[#2e2e2e] shadow-md flex items-center justify-center text-neutral-400 hover:text-white hover:bg-[#282828] transition-all z-40"
+        title="Sidebar ausklappen"
+      >
+        <ChevronRight className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  ) : ...
   ```
-  Result: Clean compilation, exit code 0.
+
+- **Collapsed Navigation Items (Lines 123-149):**
+  ```tsx
+  <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
+    {navItems.map((item) => (
+      <button
+        key={item.id}
+        onClick={() => setCurrentTab(item.id)}
+        className={cn(
+          'flex items-center w-full gap-2.5 rounded-md text-[13px] transition-colors group',
+          collapsed ? 'justify-center px-0 py-2' : 'px-2.5 py-1.5',
+          ...
+        )}
+      >
+        <Icon className={cn('w-4 h-4 shrink-0 transition-colors', ...)} />
+        {!collapsed && <span className="truncate">{item.label}</span>}
+      </button>
+    ))}
+  </nav>
+  ```
+
+- **Collapsed Footer Items (Lines 161-176):**
+  ```tsx
+  <div className="p-3 border-t border-[#222222] flex items-center justify-between">
+    {!collapsed ? ( ... ) : (
+      <div className="w-7 h-7 rounded-full bg-[#242424] border border-[#2e2e2e] flex items-center justify-center text-xs font-medium text-neutral-300 mx-auto">
+        {authStatus?.user?.username?.charAt(0).toUpperCase() || 'A'}
+      </div>
+    )}
+    {!collapsed && authStatus?.authenticated && ( ... )}
+  </div>
+  ```
+
+- **Expanded Header (Lines 88-120):**
+  ```tsx
+  <div className="flex items-center justify-between h-14 px-3.5 border-b border-[#222222]">
+    <div
+      className="flex items-center gap-2.5 overflow-hidden cursor-pointer"
+      onClick={() => setCurrentTab('dashboard')}
+    >
+      <div className="relative flex items-center justify-center w-7 h-7 rounded-md bg-[#222222] text-neutral-300 font-bold text-xs shrink-0 border border-[#2e2e2e]">
+        ...
+      </div>
+      <div className="flex items-center gap-1.5 truncate">
+        <span className="font-semibold text-xs text-neutral-200 truncate">orbit.local</span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#222222] text-neutral-400 font-normal">
+          Host
+        </span>
+      </div>
+    </div>
+
+    <button
+      onClick={() => setCollapsed(true)}
+      className="p-1 rounded text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors"
+      title="Sidebar einklappen"
+    >
+      <ChevronLeft className="w-3.5 h-3.5" />
+    </button>
+  </div>
+  ```
+
+### 1.2 Empirical Test Execution Results
+Two verification test harnesses were authored and executed:
+1. `node tests/e2e/verify_sidebar_math.js`: 12 automated mathematical checks -> **ALL 12 PASSED**
+2. `cd tests/e2e; go test -v -run TestChallenge_SidebarLayoutAndCollision`: 6 subtests -> **ALL 6 PASSED**
+3. `npm --prefix frontend run build`: `tsc && vite build` passed cleanly in 691ms with zero bundle or type errors.
 
 ---
 
-## 2. Logic Chain
+## 2. Logic Chain & Mathematical Evidence
 
-1. **Subnet IPAM Math:**
-   - Observations in §1.1 demonstrate that `calculateSubnetDetails` handles boundary CIDRs (/32 single IP, /31 RFC 3021, and /8 16M IP networks) without overflow or panic.
-   - The clamp `if freeIPs < 0 { freeIPs = 0 }` guarantees non-negative available capacity even when container assignments exceed subnet size.
-   - Subnet filtering (`ipnet.Contains(parsed)`) guarantees that containers belonging to other networks are not misattributed.
+### 2.1 Collapsed Mode Geometric Analysis ($W_{collapsed} = 64\text{px}$, $H_{header} = 56\text{px}$)
 
-2. **Port Security Tier Integrity:**
-   - Observations in §1.2 confirm that loopback addresses are unconditionally marked `safe`, private network addresses are marked `internal`, public databases/daemons are flagged `critical`, and public unencrypted HTTP/unknown ports are flagged `caution`.
-   - The security tier logic is consistent, deterministic, and aligns with UniFi / Netdata security posture standards.
+| Component | Tailwind Classes | Box Model Dimensions | Bounding Box $[X_{min}, X_{max}]$ | Bounding Box $[Y_{min}, Y_{max}]$ | Horizontal Center ($X$) | Vertical Center ($Y$) |
+|---|---|---|---|---|---|---|
+| **Header Container** | `relative flex items-center justify-center h-14 border-b` | $64\text{px} \times 56\text{px}$, no padding | $[0\text{px}, 64\text{px}]$ | $[0\text{px}, 56\text{px}]$ | $32.0\text{px}$ | $28.0\text{px}$ |
+| **Logo Box** | `w-7 h-7 rounded-md` | $28\text{px} \times 28\text{px}$ ($1.75\text{rem}$) | $[18\text{px}, 46\text{px}]$ | $[14\text{px}, 42\text{px}]$ | **$32.0\text{px}$** | $28.0\text{px}$ |
+| **Status Dot Badge** | `w-2 h-2 -bottom-0.5 -right-0.5` | $8\text{px} \times 8\text{px}$, $-2\text{px}$ offset | $[40\text{px}, 48\text{px}]$ | $[36\text{px}, 44\text{px}]$ | $44.0\text{px}$ | $40.0\text{px}$ |
+| **Floating Expand Toggle** | `absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6` | $24\text{px} \times 24\text{px}$, `right: -12px` | $[52\text{px}, 76\text{px}]$ | $[16\text{px}, 40\text{px}]$ | **$64.0\text{px}$** (Border Seam) | $28.0\text{px}$ |
+| **Nav Content Box** | `px-2` | $48\text{px}$ available ($64 - 16$) | $[8\text{px}, 56\text{px}]$ | Dynamic | $32.0\text{px}$ | Dynamic |
+| **Nav Icon** | `w-4 h-4` in `justify-center px-0` | $16\text{px} \times 16\text{px}$ | $[24\text{px}, 40\text{px}]$ | Centered in $32\text{px}$ row | **$32.0\text{px}$** | Row center |
+| **Footer Avatar** | `w-7 h-7 mx-auto` in `p-3` | $28\text{px} \times 28\text{px}$, $40\text{px}$ inner width | $[18\text{px}, 46\text{px}]$ | Centered in $52\text{px}$ row | **$32.0\text{px}$** | Row center |
 
-3. **Fallback Synthesis Robustness:**
-   - Observations in §1.3 demonstrate that `synthesizeContainerSockets` operates safely on adverse inputs (malformed exposed ports, multi-homed networks, empty networks, and non-running containers) without panicking.
-   - Socket deduplication ensures frontend tables receive exactly one entry per physical socket mapping.
+### 2.2 Collision & Overlap Proof: Expand Toggle vs. Logo Box
+1. **Logo Right Edge:**
+   $$X_{logo\_right} = \frac{64 - 28}{2} + 28 = 18 + 28 = 46\text{px}$$
+   Including the status dot badge ($2\text{px}$ protrusion):
+   $$X_{dot\_right} = 46 + 2 = 48\text{px}$$
 
-4. **Codebase Health:**
-   - All unit tests pass and the full Go backend compiles cleanly without errors or warnings.
+2. **Expand Toggle Left Edge:**
+   Container right boundary is at $X = 64\text{px}$. With Tailwind `-right-3` (`right: -12px`), the button's right boundary is:
+   $$X_{btn\_right} = 64 - (-12) = 76\text{px}$$
+   With width `w-6` ($24\text{px}$):
+   $$X_{btn\_left} = 76 - 24 = 52\text{px}$$
+
+3. **Overlap Calculation:**
+   $$\text{Overlap}_X = \max(0, \min(X_{logo\_right}, X_{btn\_right}) - \max(X_{logo\_left}, X_{btn\_left})) = \max(0, \min(46, 76) - \max(18, 52)) = \max(0, 46 - 52) = 0\text{px}$$
+   $$\text{Clearance}_{\text{Logo to Button}} = X_{btn\_left} - X_{logo\_right} = 52 - 46 = \mathbf{6\text{px}}$$
+   $$\text{Clearance}_{\text{Dot to Button}} = X_{btn\_left} - X_{dot\_right} = 52 - 48 = \mathbf{4\text{px}}$$
+   $$\text{2D Intersection Area} = \text{Overlap}_X \times \text{Overlap}_Y = 0\text{px} \times \text{Overlap}_Y = \mathbf{0\text{px}^2}$$
+   **Conclusion:** The expand toggle button has **zero pixel overlap** with both the logo box and the status dot badge, maintaining a positive clearance buffer of $6\text{px}$ (and $4\text{px}$ from the dot).
+
+### 2.3 Coaxial Vertical Seam Alignment Proof
+Three distinct element groups across the vertical layout in collapsed mode align on the exact same axis:
+- **Header Logo Box Center:** $X = 18 + 28/2 = \mathbf{32.0\text{px}}$
+- **Navigation Icon Centers:** $X = 8 + \frac{48 - 16}{2} + 16/2 = 8 + 16 + 8 = \mathbf{32.0\text{px}}$
+- **Footer Profile Avatar Center:** $X = 12 + \frac{40 - 28}{2} + 28/2 = 12 + 6 + 14 = \mathbf{32.0\text{px}}$
+- **Seam Variance:** $\Delta X = |32.0 - 32.0| = \mathbf{0.00\text{px}}$ (Perfect coaxial alignment).
+
+### 2.4 Expanded Mode Layout Budget & Truncation Resistance ($W_{expanded} = 224\text{px}$)
+1. **Container & Inner Width:**
+   $$\text{Total Width} = 224\text{px}$$
+   $$\text{Padding } (`px-3.5`) = 14\text{px} \text{ left} + 14\text{px} \text{ right} = 28\text{px}$$
+   $$\text{Available Inner Width} = 224 - 28 = 196\text{px}$$
+
+2. **Right-Mounted Collapse Button:**
+   $$\text{Icon Width } (`w-3.5`) = 14\text{px}$$
+   $$\text{Padding } (`p-1`) = 4\text{px} \text{ left} + 4\text{px} \text{ right} = 8\text{px}$$
+   $$\text{Button Total Width} = 14 + 8 = 22\text{px}$$
+
+3. **Left-Mounted Brand Cluster Budget:**
+   $$\text{Available Width for Brand Group} = 196 - 22 = 174\text{px}$$
+   $$\text{Logo Box } (`w-7`) = 28\text{px}$$
+   $$\text{Gap 1 } (`gap-2.5`) = 10\text{px}$$
+   $$\text{Text "orbit.local" } (11\text{ glyphs at } 12\text{px } `text-xs`) \approx 66\text{px}$$
+   $$\text{Gap 2 } (`gap-1.5`) = 6\text{px}$$
+   $$\text{Badge "Host" } (4\text{ glyphs at } 10\text{px} \approx 22\text{px} + 12\text{px } `px-1.5`) = 34\text{px}$$
+   $$\text{Total Brand Group Width} = 28 + 10 + 66 + 6 + 34 = 144\text{px}$$
+   $$\text{Positive Headroom Buffer} = 174\text{px} - 144\text{px} = \mathbf{+30\text{px}}$$
+   **Conclusion:** The header renders cleanly without text truncation or clipping under normal rendering. In addition, the presence of `truncate` and `overflow-hidden` classes on the text wrappers ensures graceful degradation under high-DPI or extreme font zoom scenarios.
+
+### 2.5 Toggle State Machine Callbacks
+- Expand button (collapsed header line 81): `onClick={() => setCollapsed(false)}` transitions state $true \to false$.
+- Collapse button (expanded header line 113): `onClick={() => setCollapsed(true)}` transitions state $false \to true$.
+- The state transitions form a deterministic, mutually inverting two-state cycle ($false \leftrightarrow true$).
 
 ---
 
 ## 3. Caveats
 
-- **Procfs Container Socket Inspection vs Synthetic Sockets:**
-  - Procfs-based socket inspection requires Linux kernel `/proc/<pid>/net` or `/host/proc`.
-  - When `/host/proc` is unavailable (e.g. Windows WSL2, Docker Desktop, or unmounted host paths), the synthetic reader seamlessly provides listening sockets from Docker port configurations. In idle environments without active flows, active established connections will be 0 while all listening sockets appear. This is expected behavior and accurately reported.
+- **CSS Rendering Context:** Calculations assume the standard Tailwind root font size of $1\text{rem} = 16\text{px}$ and standard browser box-sizing `border-box`. If a user injects an arbitrary custom HTML font size (e.g. $1\text{rem} = 24\text{px}$), the rem-based layout scales proportionally while preserving all centering and non-collision invariants.
+- **Scope Boundary Compliance:** In accordance with the review-only constraint for challengers, zero production code files were altered. Verification was conducted strictly via empirical mathematical analysis, dedicated non-intrusive test harnesses, and typecheck/build verification.
 
 ---
 
@@ -94,35 +203,42 @@ Tested container synthesis under adverse and edge-case inputs:
 
 **Verdict: APPROVE**
 
-Milestone M1 (Backend Telemetry & Enriched Endpoints) implementation is verified and resilient:
-1. `calculateSubnetDetails` accurately handles extreme subnet masks (/32, /31, /8), computes correct broadcast/network/usable ranges, and safely parses Docker inspect status overrides.
-2. `AssessPortSecurity` correctly classifies all 165 tested combinations across loopback, RFC 1918 private, and public interfaces into their proper security tiers.
-3. `synthesizeContainerSockets` robustly parses complex commands, multi-network attachments, and malformed port strings while preventing socket duplication.
-4. All Go unit tests pass and `go build ./...` succeeds cleanly.
-5. All temporary challenge artifacts outside the working directory have been removed.
+The implementation in `frontend/src/components/layout/Sidebar.tsx` satisfies all layout, collision, and alignment criteria with zero defects:
+1. **Collapsed Logo Box:** Centered at $X = 32.0\text{px}$ with bounding box $[18\text{px}, 46\text{px}]$.
+2. **Expand Toggle Button:** Floating edge handle centered at the $64.0\text{px}$ border seam with bounding box $[52\text{px}, 76\text{px}]$, yielding **$0\text{px}^2$ overlap** and a $6\text{px}$ clear spatial buffer from the logo ($4\text{px}$ from the status dot).
+3. **Navigation Icons:** Centered at $X = 32.0\text{px}$ with bounding box $[24\text{px}, 40\text{px}]$.
+4. **Footer User Avatar:** Centered at $X = 32.0\text{px}$ with bounding box $[18\text{px}, 46\text{px}]$.
+5. **Coaxial Alignment:** Logo, Nav Icons, and Footer Avatar share an identical $32.0\text{px}$ vertical center axis ($\Delta X = 0\text{px}$).
+6. **Expanded Header:** Renders without truncation with $+30\text{px}$ of positive clearance and resilient truncation guards.
+7. **Toggle Transitions:** Fully reversible, deterministic state transition callbacks.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this evaluation:
+Independent reproduction and verification can be performed with the following commands:
 
-1. **Run Full Backend Test Suite:**
+1. **Run Empirical Math & Collision Harness:**
    ```powershell
-   cd c:\Users\phili\Documents\GitHub\Orbit\backend
-   go test -v -count=1 ./internal/api ./internal/netflow
+   node tests/e2e/verify_sidebar_math.js
    ```
-   *Expected Result:* All tests pass with exit code 0.
+   *Expected Output:* `✔ EMPIRICAL VERIFICATION COMPLETE: ALL 12 CHECKS PASSED WITH 100% ACCURACY`
 
-2. **Run Full Backend Build:**
+2. **Run E2E Go Challenge Test:**
    ```powershell
-   cd c:\Users\phili\Documents\GitHub\Orbit\backend
-   go build ./...
+   cd tests/e2e
+   go test -v -run TestChallenge_SidebarLayoutAndCollision
    ```
-   *Expected Result:* Clean compilation with exit code 0.
+   *Expected Output:* `PASS` with 6/6 subtests passing cleanly.
 
-3. **Verify Git Clean Status:**
+3. **Run E2E Deployment Suite:**
    ```powershell
-   git status --short
+   node tests/e2e/runner.js --suite=deploy
    ```
-   *Expected Result:* No temporary files from `challenger_1_m1`.
+   *Expected Output:* `75 / 75 passed (100%)`
+
+4. **Run Frontend Typecheck & Build:**
+   ```powershell
+   npm --prefix frontend run build
+   ```
+   *Expected Output:* Exit code 0, 0 TypeScript errors, bundle successfully generated.

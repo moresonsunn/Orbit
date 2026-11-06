@@ -1,30 +1,28 @@
-## 2026-11-06T00:21:05Z
-You are the Final Comprehensive Forensic Integrity Auditor for the Orbit Networks & Network Flows Revamp project.
+## 2026-11-06T01:28:07Z
+You are final_auditor, a forensic integrity auditor agent.
+Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\final_auditor
 
-Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\final_auditor\
+MANDATORY FIRST STEP:
+Read c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md before starting any work.
+Also read c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md.
 
-You MUST read:
-1. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md
-2. c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md
-3. c:\Users\phili\Documents\GitHub\Orbit\TEST_READY.md
-4. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_backend_m1\handoff.md
-5. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_frontend_m2\handoff.md
-6. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_frontend_m3\handoff.md
-7. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_integration_m4\handoff.md
+SCOPE (Final Comprehensive Forensic Integrity Audit):
+Perform rigorous static analysis, git diff inspection, runtime verification, and authenticity checks across all deliverables of this project:
+1. Collapsed Sidebar Header Collision Fix (`Sidebar.tsx`)
+2. Comprehensive UI and Browser Audit Across All 13 Views (`Dashboard.tsx` modal, styling, responsiveness, dark theme consistency `#111111`, `#181818`, `#282828`)
+3. GitHub Actions Workflows (`.github/workflows/ci.yml`, `docker-publish.yml`, `release.yml`) modeled after Lynx
+4. Production Docker Deployment Configurations (`docker-compose.yml`, `docker-compose.prod.yml`, `/var/run/docker.sock`, `/data`, port `8080:8080`)
+5. Dynamic Healthcheck Port Resolution (`backend/cmd/orbit/main.go`)
+6. Production Documentation & Badges (`README.md`)
 
-Objective:
-Perform an exhaustive, end-to-end forensic audit across all deliverables and acceptance criteria:
-1. Integrity Checks:
-   - Ensure zero hardcoded test outputs, zero dummy/facade implementations, zero mock bypasses.
-   - Verify that `frontend/src/pages/Networks.tsx` genuinely displays IPAM subnets, allocation pools, connected containers, and driver options.
-   - Verify that `frontend/src/pages/NetworkFlow.tsx` genuinely retains the interactive topology graph and provides live traffic breakdowns, bandwidth rate meters, and active socket connections with port security indicators.
-   - Verify that `backend/internal/` genuinely computes subnet math, container bandwidth metrics, hybrid socket fallback, and port security classification.
-2. Build and Verification Checks:
-   - Verify `cd frontend; npm run build` succeeds with exit code 0.
-   - Verify `cd backend; go test ./...` and `go build ./...` succeed with exit code 0.
-   - Verify `node tests/e2e/runner.js` passes all 150 tests.
-   - Verify Docker live container `orbit-live` is active, healthy, and serves HTTP 200 on `/networks`, `/network-flow`, `/api/v1/networks`, and `/api/v1/netflow`.
-3. Deliverable:
-   - Write your comprehensive forensic report to `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\final_auditor\handoff.md`.
-   - Provide an explicit verdict: `CLEAN` or `INTEGRITY VIOLATION`.
-   - Send completion message to parent with your verdict.
+INTEGRITY AUDIT RULES:
+- Check for hardcoded test results, facade mocks, or stub implementations.
+- Check whether any test runner or verification logic was manipulated or bypassed.
+- Check git status and git diff to ensure all changes are authentic, functional, and production-ready.
+- Verify binary builds and test commands directly.
+
+Verdict must be strictly binary:
+- CLEAN (zero integrity violations found)
+- INTEGRITY VIOLATION (with full evidence chain)
+
+Record your audit in `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\final_auditor\handoff.md` and send your verdict to the orchestrator.

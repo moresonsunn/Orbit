@@ -24,7 +24,7 @@ import {
 import { MetricCard } from '../components/common/MetricCard';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { Container, HostMetrics, GPUTelemetry, SystemInfoResponse } from '../types';
-import { formatBytes, formatBps, formatPercent, formatUptime } from '../lib/utils';
+import { cn, formatBytes, formatBps, formatPercent, formatUptime } from '../lib/utils';
 import { wsClient } from '../lib/ws';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import {
@@ -509,93 +509,174 @@ export const Dashboard: React.FC<DashboardProps> = ({
   )}
 
       {/* Active Containers (Direct Canvas Table, Tailscale style) */}
-      <div className="pt-2">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <h3 className="text-base font-semibold text-white tracking-tight">Aktive Container ({counts.running})</h3>
-            <p className="text-xs text-neutral-400 font-normal">Live-Statistiken aller aktuell ausgeführten Instanzen</p>
+      {prefs.showContainers && (
+        <div className="pt-2">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-base font-semibold text-white tracking-tight">Aktive Container ({counts.running})</h3>
+              <p className="text-xs text-neutral-400 font-normal">Live-Statistiken aller aktuell ausgeführten Instanzen</p>
+            </div>
           </div>
-        </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold">
-                <th className="pb-3 px-3 font-semibold">Container</th>
-                <th className="pb-3 px-3 font-semibold">Web / Ports</th>
-                <th className="pb-3 px-3 font-semibold">Status</th>
-                <th className="pb-3 px-3 font-semibold">CPU</th>
-                <th className="pb-3 px-3 font-semibold">RAM</th>
-                <th className="pb-3 px-3 font-semibold">Netzwerk RX/TX</th>
-                <th className="pb-3 px-3 font-semibold">Uptime</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1f1f1f]">
-              {containers.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-neutral-500 font-normal">
-                    Keine Container auf diesem Server gefunden.
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#242424] text-neutral-400 uppercase tracking-wider text-[11px] font-semibold">
+                  <th className="pb-3 px-3 font-semibold">Container</th>
+                  <th className="pb-3 px-3 font-semibold">Web / Ports</th>
+                  <th className="pb-3 px-3 font-semibold">Status</th>
+                  <th className="pb-3 px-3 font-semibold">CPU</th>
+                  <th className="pb-3 px-3 font-semibold">RAM</th>
+                  <th className="pb-3 px-3 font-semibold">Netzwerk RX/TX</th>
+                  <th className="pb-3 px-3 font-semibold">Uptime</th>
                 </tr>
-              ) : (
-                containers.slice(0, 10).map((c) => (
-                  <tr
-                    key={c.id}
-                    onClick={() => onSelectContainer(c.id)}
-                    className="hover:bg-white/[0.02] cursor-pointer transition-colors"
-                  >
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold text-white text-[13px] hover:underline">{c.name}</span>
-                        <span className="text-[10px] text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-[#1c1c1c] border border-[#2a2a2a]">{c.shortId}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-wrap gap-1 items-center">
-                        {c.ports.filter((p) => p.publicPort).slice(0, 2).map((p, idx) => (
-                          <a
-                            key={idx}
-                            href={`http://${window.location.hostname}:${p.publicPort}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-[#1c1c1c] border border-[#2a2a2a] text-blue-400 hover:border-blue-500/70 hover:bg-blue-950/20 transition-colors"
-                            title={`Web-App in neuem Tab öffnen: :${p.publicPort}`}
-                          >
-                            <span>:{p.publicPort}</span>
-                            <ExternalLink className="w-2.5 h-2.5 opacity-70" />
-                          </a>
-                        ))}
-                        {c.ports.filter((p) => p.publicPort).length === 0 && (
-                          <span className="text-neutral-600 font-mono text-[11px]">—</span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <StatusBadge status={c.state} />
-                    </td>
-                    <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
-                      {c.stats?.cpuPercent.value !== null && c.stats?.cpuPercent.value !== undefined
-                        ? formatPercent(c.stats.cpuPercent.value)
-                        : '—'}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
-                      {c.stats?.memUsage.value !== null && c.stats?.memUsage.value !== undefined
-                        ? `${formatBytes(c.stats.memUsage.value)} (${formatPercent(c.stats.memPercent.value)})`
-                        : '—'}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-neutral-400 tabular-nums">
-                      ↓ {formatBps(c.stats?.netRxBps.value)} · ↑ {formatBps(c.stats?.netTxBps.value)}
-                    </td>
-                    <td className="py-3 px-3 font-mono text-neutral-400">
-                      {c.startedAt ? formatUptime(Math.floor((Date.now() - new Date(c.startedAt).getTime()) / 1000)) : '—'}
+              </thead>
+              <tbody className="divide-y divide-[#1f1f1f]">
+                {containers.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-8 text-center text-neutral-500 font-normal">
+                      Keine Container auf diesem Server gefunden.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : (
+                  containers.slice(0, 10).map((c) => (
+                    <tr
+                      key={c.id}
+                      onClick={() => onSelectContainer(c.id)}
+                      className="hover:bg-white/[0.02] cursor-pointer transition-colors"
+                    >
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-white text-[13px] hover:underline">{c.name}</span>
+                          <span className="text-[10px] text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-[#1c1c1c] border border-[#2a2a2a]">{c.shortId}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex flex-wrap gap-1 items-center">
+                          {c.ports.filter((p) => p.publicPort).slice(0, 2).map((p, idx) => (
+                            <a
+                              key={idx}
+                              href={`http://${window.location.hostname}:${p.publicPort}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-mono bg-[#1c1c1c] border border-[#2a2a2a] text-blue-400 hover:border-blue-500/70 hover:bg-blue-950/20 transition-colors"
+                              title={`Web-App in neuem Tab öffnen: :${p.publicPort}`}
+                            >
+                              <span>:{p.publicPort}</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                            </a>
+                          ))}
+                          {c.ports.filter((p) => p.publicPort).length === 0 && (
+                            <span className="text-neutral-600 font-mono text-[11px]">—</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <StatusBadge status={c.state} />
+                      </td>
+                      <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
+                        {c.stats?.cpuPercent.value !== null && c.stats?.cpuPercent.value !== undefined
+                          ? formatPercent(c.stats.cpuPercent.value)
+                          : '—'}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-neutral-300 tabular-nums">
+                        {c.stats?.memUsage.value !== null && c.stats?.memUsage.value !== undefined
+                          ? `${formatBytes(c.stats.memUsage.value)} (${formatPercent(c.stats.memPercent.value)})`
+                          : '—'}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-neutral-400 tabular-nums">
+                        ↓ {formatBps(c.stats?.netRxBps.value)} · ↑ {formatBps(c.stats?.netTxBps.value)}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-neutral-400">
+                        {c.startedAt ? formatUptime(Math.floor((Date.now() - new Date(c.startedAt).getTime()) / 1000)) : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Dashboard Configuration Modal */}
+      {showConfigModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm font-sans animate-in fade-in duration-150">
+          <div className="relative w-full max-w-md bg-[#181818] border border-[#282828] rounded-xl shadow-2xl p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#242424]">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-blue-400" />
+                <h3 className="text-sm font-semibold text-white">Dashboard anpassen</h3>
+              </div>
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="p-1 rounded text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Presets */}
+            <div>
+              <label className="text-xs font-medium text-neutral-400 block mb-2">Vorkonfigurierte Profile</label>
+              <div className="grid grid-cols-3 gap-2">
+                {(['minimal', 'balanced', 'pro'] as const).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPreset(p)}
+                    className={cn(
+                      'px-2.5 py-1.5 rounded-md text-xs font-medium border text-center transition-colors',
+                      prefs.preset === p
+                        ? 'bg-blue-600 border-blue-500 text-white'
+                        : 'bg-[#121212] border-[#282828] text-neutral-400 hover:text-white hover:border-[#383838]'
+                    )}
+                  >
+                    {p === 'minimal' ? 'Kompakt' : p === 'balanced' ? 'Standard' : 'Pro Sysadmin'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Widget Toggles */}
+            <div className="space-y-2.5 pt-2 border-t border-[#242424]">
+              <label className="text-xs font-medium text-neutral-400 block mb-1">Angezeigte Widgets</label>
+              {[
+                { key: 'showSummary', label: 'Host-Kernmetriken (CPU, RAM, Netz, Disk)' },
+                { key: 'showDockerOverview', label: 'Docker Engine Statusleiste' },
+                { key: 'showLoadAvg', label: 'Load Average (1m, 5m, 15m)' },
+                { key: 'showThermals', label: 'Hardware-Temperaturen (Sensoren)' },
+                { key: 'showGPU', label: 'GPU-Telemetrie Vorschau' },
+                { key: 'showCharts', label: 'Echtzeit-Verlaufsdiagramme' },
+                { key: 'showContainers', label: 'Aktive Container-Tabelle' },
+                { key: 'compactMode', label: 'Kompakte Abstände' },
+              ].map((item) => {
+                const isEnabled = prefs[item.key as keyof DashboardPreferences];
+                return (
+                  <div
+                    key={item.key}
+                    onClick={() => updatePref(item.key as keyof DashboardPreferences, !isEnabled as any)}
+                    className="flex items-center justify-between p-2 rounded-md bg-[#121212] border border-[#242424] hover:border-[#333333] cursor-pointer transition-colors text-xs"
+                  >
+                    <span className="text-neutral-300">{item.label}</span>
+                    <button className={cn('p-1 rounded text-xs', isEnabled ? 'text-blue-400' : 'text-neutral-600')}>
+                      {isEnabled ? <Check className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setShowConfigModal(false)}
+                className="px-4 py-1.5 rounded-md text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white transition-colors"
+              >
+                Fertig
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

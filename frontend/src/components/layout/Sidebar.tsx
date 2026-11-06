@@ -58,9 +58,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     >
       {/* Brand Header (Tailscale org style) */}
-      <div className="flex items-center justify-between h-14 px-3.5 border-b border-[#222222]">
-        <div className="flex items-center gap-2.5 overflow-hidden cursor-pointer" onClick={() => setCurrentTab('dashboard')}>
-          <div className="relative flex items-center justify-center w-7 h-7 rounded-md bg-[#222222] text-neutral-300 font-bold text-xs shrink-0 border border-[#2e2e2e]">
+      {collapsed ? (
+        <div className="relative flex items-center justify-center h-14 border-b border-[#222222]">
+          {/* Centered Logo */}
+          <div
+            onClick={() => setCurrentTab('dashboard')}
+            className="relative flex items-center justify-center w-7 h-7 rounded-md bg-[#222222] text-neutral-300 font-bold text-xs cursor-pointer border border-[#2e2e2e] hover:border-neutral-500 transition-colors"
+            title="orbit.local (Dashboard)"
+          >
             <span className="tracking-tighter">O</span>
             <span
               className={cn(
@@ -70,24 +75,49 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title={dockerConnected ? 'Docker Daemon verbunden' : 'Docker Daemon getrennt'}
             />
           </div>
-          {!collapsed && (
+
+          {/* Floating Edge Expand Handle (Zero collision, perfectly positioned on border) */}
+          <button
+            onClick={() => setCollapsed(false)}
+            className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-[#1c1c1c] border border-[#2e2e2e] shadow-md flex items-center justify-center text-neutral-400 hover:text-white hover:bg-[#282828] transition-all z-40"
+            title="Sidebar ausklappen"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between h-14 px-3.5 border-b border-[#222222]">
+          <div
+            className="flex items-center gap-2.5 overflow-hidden cursor-pointer"
+            onClick={() => setCurrentTab('dashboard')}
+          >
+            <div className="relative flex items-center justify-center w-7 h-7 rounded-md bg-[#222222] text-neutral-300 font-bold text-xs shrink-0 border border-[#2e2e2e]">
+              <span className="tracking-tighter">O</span>
+              <span
+                className={cn(
+                  'absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-[#141414]',
+                  dockerConnected ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'
+                )}
+                title={dockerConnected ? 'Docker Daemon verbunden' : 'Docker Daemon getrennt'}
+              />
+            </div>
             <div className="flex items-center gap-1.5 truncate">
               <span className="font-semibold text-xs text-neutral-200 truncate">orbit.local</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#222222] text-neutral-400 font-normal">
                 Host
               </span>
             </div>
-          )}
-        </div>
+          </div>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors"
-          title={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
-        >
-          {collapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-        </button>
-      </div>
+          <button
+            onClick={() => setCollapsed(true)}
+            className="p-1 rounded text-neutral-500 hover:text-white hover:bg-white/[0.05] transition-colors"
+            title="Sidebar einklappen"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {/* Navigation Links */}
       <nav className="flex-1 py-3 px-2 space-y-0.5 overflow-y-auto">
@@ -99,7 +129,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               key={item.id}
               onClick={() => setCurrentTab(item.id)}
               className={cn(
-                'flex items-center w-full gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors group',
+                'flex items-center w-full gap-2.5 rounded-md text-[13px] transition-colors group',
+                collapsed ? 'justify-center px-0 py-2' : 'px-2.5 py-1.5',
                 isActive
                   ? 'bg-white/[0.08] text-white font-medium'
                   : 'text-neutral-400 hover:text-neutral-200 hover:bg-white/[0.03]'

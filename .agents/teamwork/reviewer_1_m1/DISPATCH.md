@@ -1,29 +1,23 @@
-## 2026-11-05T23:49:34Z
-You are Reviewer 1 for Milestone M1: Backend Telemetry & Enriched Endpoints.
+## 2026-11-06T01:14:22Z
+You are reviewer_1_m1, an independent code review agent.
+Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1
 
-Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1\
+MANDATORY FIRST STEP:
+Read c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md before starting any work.
+Also read c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md.
+Also read worker report: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_m1_ui\handoff.md.
 
-You MUST read:
-1. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md
-2. c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md
-3. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_backend_m1\handoff.md
+SCOPE (Review Milestone M1):
+1. Inspect `frontend/src/components/layout/Sidebar.tsx`:
+   - Verify that in collapsed state (`w-16`), the logo is centered at 32px.
+   - Verify the expand toggle button (`>`) is cleanly positioned on the border seam with zero collision with the logo.
+   - Verify navigation item icons are centered at 32px when collapsed.
+   - Verify smooth transitions between collapsed and expanded states.
+2. Inspect `frontend/src/pages/Dashboard.tsx`:
+   - Verify the "Anpassen" modal dialog is properly implemented with preset buttons and widget toggles.
+   - Verify that `prefs.showContainers` correctly controls the Active Containers table display.
+3. Inspect view polish fixes across other views.
+4. Run frontend verification: `npm --prefix frontend run build`.
+5. Run tests: `cd tests/e2e && go test -v -run TestTier1_DeployUI_FeatureCoverage ./...` (or test runner).
 
-Objective:
-Review the backend code changes made for M1 in:
-- `backend/internal/api/handlers.go`
-- `backend/internal/api/handlers_test.go`
-- `backend/internal/netflow/types.go`
-- `backend/internal/netflow/builder.go`
-- `backend/internal/netflow/socket_reader.go`
-- `backend/internal/netflow/protocols.go`
-- `backend/internal/netflow/netflow_test.go`
-
-Check:
-1. Conformance with `PROJECT.md § Interface Contracts`: Are `EnrichedDockerNetwork` and `NetflowSnapshot` fields strictly matching? Is backward compatibility preserved?
-2. Subnet calculation accuracy: Does `calculateSubnetDetails` correctly compute NetworkIP, BroadcastIP, usable IP range, total capacity, used/free IPs, and utilization percentage?
-3. Sockets & Fallback: Does `synthesizeContainerSockets` correctly map ports, exposed ports, process names, and security attributes when procfs yields 0 sockets?
-4. Run tests and build:
-   - `cd backend; go test ./...`
-   - `cd backend; go build ./...`
-5. Write your 5-component report to `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1\handoff.md` with explicit verdict (APPROVE or REQUEST_CHANGES).
-6. Send completion message with your verdict to parent.
+Deliver an objective verdict (APPROVE or REQUEST_CHANGES) with clear evidence in `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1\handoff.md` and send a completion message to the orchestrator.

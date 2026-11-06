@@ -28,7 +28,7 @@ export const ActionConfirmModal: React.FC<ActionConfirmModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs animate-in fade-in duration-150 font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150 font-sans">
       <div className="relative w-full max-w-md bg-[#181818] border border-[#282828] rounded-xl shadow-2xl overflow-hidden p-6">
         <button
           onClick={onClose}

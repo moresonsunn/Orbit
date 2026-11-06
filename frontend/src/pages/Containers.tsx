@@ -140,7 +140,7 @@ export const ContainersPage: React.FC<ContainersPageProps> = ({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, image, or ID..."
+              placeholder="Suche nach Name, Image oder ID..."
               className="w-full pl-8 pr-3 py-1.5 bg-[#181818] border border-[#2a2a2a] rounded-md text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-neutral-400"
             />
           </div>

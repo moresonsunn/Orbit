@@ -230,7 +230,7 @@ export const ContainerDetail: React.FC<ContainerDetailProps> = ({
       </div>
 
       {/* Detail Navigation Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#242424] pb-2">
+      <div className="flex items-center gap-1 border-b border-[#242424] pb-2 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview', icon: Info },
           { id: 'performance', label: 'Performance', icon: Activity },

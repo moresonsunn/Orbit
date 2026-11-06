@@ -1137,12 +1137,12 @@ export const NetworkFlowPage: React.FC = () => {
                             {remoteAddress}
                           </span>
                           {rType === 'lan' && (
-                            <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-blue-950/40 text-blue-400 border border-blue-900/40">
+                            <span className="px-1 py-0.5 rounded text-[9px] font-mono bg-blue-950/40 text-blue-400 border border-blue-900/40">
                               LAN
                             </span>
                           )}
                           {rType === 'wan' && (
-                            <span className="px-1 py-0.2 rounded text-[9px] font-mono bg-purple-950/40 text-purple-400 border border-purple-900/40">
+                            <span className="px-1 py-0.5 rounded text-[9px] font-mono bg-purple-950/40 text-purple-400 border border-purple-900/40">
                               WAN
                             </span>
                           )}

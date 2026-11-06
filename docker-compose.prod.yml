@@ -1,0 +1,45 @@
+# Orbit - Production Server Deployment
+# Usage: docker compose -f docker-compose.prod.yml up -d
+
+services:
+  orbit:
+    image: moresonsunn/orbit:latest
+    container_name: orbit
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ORBIT_LISTEN=:8080
+      - ORBIT_DATA_DIR=/data
+      - ORBIT_ENABLE_ACTIONS=${ORBIT_ENABLE_ACTIONS:-false}
+      - ORBIT_ENABLE_DESTRUCTIVE=${ORBIT_ENABLE_DESTRUCTIVE:-false}
+      - ORBIT_GPU=${ORBIT_GPU:-auto}
+      - ORBIT_EBPF=${ORBIT_EBPF:-auto}
+      - ORBIT_LOG_LEVEL=${ORBIT_LOG_LEVEL:-info}
+      - ORBIT_TRUST_PROXY=true
+      - ORBIT_TRUSTED_ORIGINS=${ORBIT_TRUSTED_ORIGINS:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - orbit_data:/data
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    security_opt:
+      - no-new-privileges:true
+    group_add:
+      - "${DOCKER_GID:-999}"
+    healthcheck:
+      test: ["CMD", "/app/orbit", "-healthcheck"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+volumes:
+  orbit_data:
+    name: orbit_data

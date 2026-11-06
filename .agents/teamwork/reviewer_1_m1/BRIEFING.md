@@ -1,70 +1,67 @@
-# BRIEFING — 2026-11-05T23:55:00Z
+# BRIEFING — 2026-11-06T01:17:45Z
 
 ## Mission
-Conduct thorough quality and adversarial review of Milestone M1 backend changes.
+Perform an independent, adversarial code and UI review of Milestone M1 (Sidebar collapse alignment, Dashboard "Anpassen" customization modal, active containers toggle, view polish).
 
 ## 🔒 My Identity
-- Archetype: reviewer / critic
+- Archetype: reviewer_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1
-- Original parent: 4572cb91-25c6-48e4-bf11-6d7c5a635dd0
-- Milestone: M1: Backend Telemetry & Enriched Endpoints
+- Original parent: 76249bc7-c19e-4897-a32b-2732d28b3d60
+- Milestone: M1
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Check integrity violations (hardcoding, facade, shortcut, fabricated output)
-- Issue APPROVE or REQUEST_CHANGES
+- Check for integrity violations (hardcoded test results, facade implementations, bypassed tasks, fabricated logs)
+- Write only to `.agents/teamwork/reviewer_1_m1/`
+- Independent verification via real commands and file inspection
 
 ## Current Parent
-- Conversation ID: 4572cb91-25c6-48e4-bf11-6d7c5a635dd0
-- Updated: 2026-11-05T23:55:00Z
+- Conversation ID: 76249bc7-c19e-4897-a32b-2732d28b3d60
+- Updated: not yet
 
 ## Review Scope
-- **Files to review**:
-  - `backend/internal/api/handlers.go`
-  - `backend/internal/api/handlers_test.go`
-  - `backend/internal/netflow/types.go`
-  - `backend/internal/netflow/builder.go`
-  - `backend/internal/netflow/socket_reader.go`
-  - `backend/internal/netflow/protocols.go`
-  - `backend/internal/netflow/netflow_test.go`
-- **Interface contracts**: PROJECT.md § Interface Contracts
-- **Review criteria**: correctness, style, conformance, adversarial robustness, subnet math, socket fallback
-
-## Key Decisions Made
-- Confirmed full backward compatibility for `EnrichedDockerNetwork` and `NetflowSnapshot`.
-- Verified subnet math calculations across standard (/16, /24) and edge (/30, /31, /32, /8, overloaded, IPv6) subnets.
-- Verified hybrid socket reader fallback when procfs is unavailable (Windows/Docker Desktop/orbit-live).
-- Verified `go test ./...` and `go build ./...` pass cleanly.
-- Verdict determined: APPROVE.
-
-## Artifact Index
-- DISPATCH.md — incoming dispatch instructions
-- BRIEFING.md — persistent state memory
-- progress.md — liveness heartbeat
-- handoff.md — 5-component review & challenge report
+- **Files reviewed**:
+  - `frontend/src/components/layout/Sidebar.tsx`
+  - `frontend/src/pages/Dashboard.tsx`
+  - `frontend/src/lib/dashboardConfig.ts`
+  - `frontend/src/components/auth/LoginModal.tsx`
+  - `frontend/src/components/auth/SetupModal.tsx`
+  - `frontend/src/components/modals/ActionConfirmModal.tsx`
+  - `frontend/src/pages/ContainerDetail.tsx`
+  - `frontend/src/pages/Containers.tsx`
+  - `frontend/src/pages/GPU.tsx`
+  - `frontend/src/pages/NetworkFlow.tsx`
+  - `frontend/src/pages/Networks.tsx`
+  - `frontend/src/pages/Settings.tsx`
+  - `tests/e2e/deploy_ui_tier1_test.go`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1_ui/handoff.md`
 
 ## Review Checklist
 - **Items reviewed**:
-  - `backend/internal/api/handlers.go`: Subnet calculation & network handlers (APPROVE)
-  - `backend/internal/netflow/types.go`: Extended structs & backward compatibility (APPROVE)
-  - `backend/internal/netflow/protocols.go`: Port security classifier (APPROVE)
-  - `backend/internal/netflow/socket_reader.go`: Hybrid procfs & synthetic Docker reader (APPROVE)
-  - `backend/internal/netflow/builder.go`: Snapshot assembly & totals calculation (APPROVE)
-  - `backend/internal/api/handlers_test.go`: Unit tests for subnet & JSON (APPROVE)
-  - `backend/internal/netflow/netflow_test.go`: Unit tests for security & sockets (APPROVE)
+  - Sidebar collapsed alignment (logo centered at 32px, toggle button on border seam, nav icons centered at 32px, smooth transitions)
+  - Dashboard "Anpassen" modal with presets and widget toggles
+  - `prefs.showContainers` controlling Active Containers table
+  - View polish fixes (Tailwind classes, backdrop-blur-sm, gray palette, German localization)
+  - Build & test verification (`npm --prefix frontend run build`, `go test ./...`)
 - **Verdict**: APPROVE
-- **Unverified claims**: none; all verified directly via code inspection and test execution.
+- **Unverified claims**: None (all verified via real builds and tests)
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Empty slices marshaling to JSON -> verified non-nil empty slices (`[]`), no `null` serialization.
-  - Subnet math overflow/underflow on extreme CIDRs (/8, /30, /31, /32) -> verified correct capacity and usable ranges.
-  - IPv6 CIDRs in subnet calculation -> verified graceful degradation to `nil`.
-  - Zero containers / zero stats in totals calculation -> verified no NaNs or panics, valid 0.0 totals.
-  - Procfs yielding 0 container sockets -> verified fallback synthesis properly triggered with process names and security badges.
-- **Vulnerabilities found**:
-  - Minor edge case: Dual-stack networks with IPv6 listed first in `IPAM.Config` break early before evaluating IPv4.
-- **Untested angles**:
-  - Live network traffic under high throughput (handled in M4 E2E testing).
+  - Logo/icon centering in w-16: verified centered at 32px
+  - Floating edge button: verified no collision with logo (6px clear horizontal gap) and no overlap with adjacent Header content (12px gap)
+  - Missing/corrupted localStorage: verified safe fallback and merge in `dashboardConfig.ts`
+  - Preset and toggle state reactivity: verified clean updates and localStorage persistence
+  - Active containers table gating: verified clean hiding when disabled, no impact on counter metrics
+  - TypeScript build & typechecking: verified 0 errors
+- **Vulnerabilities found**: 0
+- **Integrity violations found**: 0
+
+## Key Decisions Made
+- All acceptance criteria satisfied with zero regressions. Issued APPROVE verdict.
+
+## Artifact Index
+- `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1\handoff.md` — Final review and challenge report
+- `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_1_m1\progress.md` — Liveness & progress tracking

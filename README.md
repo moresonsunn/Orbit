@@ -1,64 +1,174 @@
-# Orbit – Self-hosted Docker Infrastructure, Management & Real-Time Monitoring Platform
+<p align="center">
+  <h1 align="center">Orbit</h1>
+  <p align="center">Self-hosted Docker infrastructure, management and real-time telemetry platform</p>
+</p>
 
-Orbit ist eine moderne, schlanke und eigenständige Docker-Infrastruktur- und Echtzeitüberwachungs-Plattform, konzipiert für CasaOS- und Linux-Server.
-
-Orbit läuft als einzelner Container direkt auf dem Host, verbindet sich mit dem Docker Engine Daemon (`/var/run/docker.sock`) und visualisiert Container, Netzwerktopologien, Socket-Verbindungen, CPU-, RAM-, Disk- und GPU-Telemetrie in einer responsiven High-End-Weboberfläche.
-
----
-
-## Highlights
-
-- **Vollständig eigenständig**: Ein einzelnes Go-Binary mit eingebetteter SQLite-Datenbank und eingebetteter React 19 SPA. Keine externen Datenbanken (PostgreSQL/Redis) erforderlich.
-- **Automatische Erkennung**: Erkennt alle existierenden Container (CasaOS Apps, Docker Compose Stacks, CLI-Container) automatisch, ohne sie zu verändern oder neu zu starten.
-- **Interaktiver Network Flow**: React-Flow-Netzwerktopologie (`Host -> Docker Networks -> Containers`) mit animierten Verkehrsintensitäten, Socket-Snapshot-Tabellen und Port-basierter Protokollklassifikation.
-- **Echte Metriken**: Exakte Übereinstimmung mit `docker stats` Berechnungsformeln (CFS-Deltas, cgroup v1/v2 Inactive-File Subtraktion). Unabhängige Erfassung der Host-Auslastung über `/proc` und `/sys`.
-- **Keine Fake-Daten**: Jede Metrik besitzt einen expliziten Status (`ok`, `pending`, `unavailable`, `unsupported`, `no_permission`). Orbit rendert niemals `0 %` für nicht erfassbare Werte.
-- **GPU-Telemetrie**: Automatische Erkennung von NVIDIA GPUs über NVML sowie AMD/Intel über DRM. Wenn keine GPU vorhanden ist, schaltet Orbit auf einen sauberen Hinweis ohne Fehlermeldungen um.
-- **Sicherheitsarchitektur**:
-  - Kein Standardpasswort: Einmaliger Setup-Token beim ersten Start im Container-Log
-  - Argon2id Passwort-Hashing
-  - CSRF-Schutz & Rate-Limiting
-  - Docker Gateway mit Allowlist (kein ungeschützter API-Pass-Through)
-  - Standardmäßig read-only (`ORBIT_ENABLE_ACTIONS=false`)
+<p align="center">
+  <a href="https://github.com/moresonsunn/orbit/actions/workflows/ci.yml"><img src="https://github.com/moresonsunn/orbit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://hub.docker.com/r/moresonsunn/orbit"><img src="https://img.shields.io/docker/pulls/moresonsunn/orbit" alt="Docker Pulls"></a>
+  <img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-blue" alt="Architecture">
+  <a href="https://github.com/moresonsunn/orbit/releases"><img src="https://img.shields.io/github/v/release/moresonsunn/orbit?color=brightgreen" alt="Release"></a>
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
+</p>
 
 ---
 
-## Schnellstart mit Docker Compose
+Orbit is a modern, standalone Docker infrastructure management and real-time monitoring platform designed for homelabs, Linux servers, and CasaOS. Orbit runs as a single lightweight container, connects to the Docker Engine daemon (`/var/run/docker.sock`), and visualizes containers, UniFi-style network IPAM, interactive network flows, socket traffic, and GPU telemetry in an executive dark-themed interface.
 
-```yaml
-services:
-  orbit:
-    image: ghcr.io/phili/orbit:latest
-    container_name: orbit
-    restart: unless-stopped
-    ports:
-      - "8787:8787"
-    environment:
-      - ORBIT_LISTEN=:8787
-      - ORBIT_DATA_DIR=/data
-      - ORBIT_ENABLE_ACTIONS=false       # auf true setzen für Container-Verwaltung
-      - ORBIT_ENABLE_DESTRUCTIVE=false   # auf true setzen für Löschaktionen
-      - ORBIT_GPU=auto
-      - ORBIT_EBPF=auto
-    volumes:
-      - /DATA/AppData/orbit/data:/data
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /etc/os-release:/host/etc/os-release:ro
-    security_opt:
-      - no-new-privileges:true
+## Features
+
+- **Containers** — Real-time state tracking and lifecycle control (start, stop, restart, pause, unpause, delete). High-fidelity metrics matching `docker stats` exact formulas (CFS deltas, cgroup v1/v2 inactive_file memory subtraction, block I/O, network rates).
+- **Networks** — Multi-driver inspection (bridge, host, overlay, macvlan, ipvlan). Scope, internal isolation status, IPv6 enablement, IPAM driver, driver options, and live connected container attachments.
+- **IPAM (IP Address Management)** — UniFi-inspired subnet inspector. Visual CIDR breakdown, gateway, network/broadcast IPs, usable host range, and live IP allocation capacity progress bars.
+- **Network Flow** — Interactive topology graph (`@xyflow/react`) mapping Host -> Networks -> Containers with animated traffic intensity pulses. Live RX/TX rate meters, protocol traffic distribution, and an active socket table attributing connections to containers with automated port security risk classification (Critical, Caution, Safe, Internal).
+- **GPU Telemetry** — Out-of-the-box telemetry for NVIDIA GPUs (NVML) and AMD/Intel GPUs (DRM). Real-time utilization %, VRAM used/total, temperature, fan speed, power draw, and container process attribution. Graceful clean fallback when no GPU is detected.
+- **Images** — Comprehensive image catalog with tags, digests, layer breakdown, creation history, pull from registries, tagging, and dangling image prune.
+- **Volumes** — Volume catalog with driver, mountpoints, size estimation, in-use container detection (preventing accidental deletion), and unused volume pruning.
+- **Events** — Real-time Docker daemon event streaming over WebSocket. Filter by event type, action, actor ID, and time range.
+- **Logs** — High-performance live log streaming with client-side backpressure protection, ANSI color parsing, search, and regex filters.
+- **Auth & Security** — Zero default passwords. Single-use cryptographically generated setup token on first launch. Argon2id password hashing, synchronized CSRF tokens, origin validation, rate limiting, and read-only mode by default (`ORBIT_ENABLE_ACTIONS=false`).
+
+## Quick Start
+
+### One-Line Docker Run
+
+```bash
+docker run -d \
+  --name orbit \
+  --restart unless-stopped \
+  -p 8080:8080 \
+  -e ORBIT_LISTEN=:8080 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v orbit_data:/data \
+  -v /proc:/host/proc:ro \
+  -v /sys:/host/sys:ro \
+  -v /etc/os-release:/host/etc/os-release:ro \
+  moresonsunn/orbit:latest
 ```
 
-1. Starten mit `docker compose up -d`.
-2. Setup-Token auslesen mit `docker logs orbit`.
-3. Orbit öffnen unter `http://SERVER-IP:8787` und Admin-Konto anlegen.
+### One-Line Docker Compose
 
----
+```bash
+curl -fsSL https://raw.githubusercontent.com/moresonsunn/orbit/main/docker-compose.prod.yml -o docker-compose.yml && docker compose up -d
+```
 
-## Dokumentation
+### First-Time Setup
+1. Retrieve the single-use setup token from container logs:
+   ```bash
+   docker logs orbit | grep "SETUP TOKEN"
+   ```
+2. Open `http://<your-server-ip>:8080` in your browser.
+3. Paste the setup token and create your administrator credentials. The token is permanently invalidated once the admin user is created.
 
-- [Installationsanleitung CasaOS](docs/INSTALLATION.md)
-- [Sicherheitskonzept & Best Practices](docs/SECURITY.md)
-- [Systemarchitektur & Metriken](docs/ARCHITECTURE.md)
+## Architecture
 
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│             Web Client (React 19 + TypeScript + Tailwind CSS)           │
+│         Tailscale Dark Aesthetic (#111111 canvas, #181818 surface)     │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ HTTP REST API / WebSocket
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                     Orbit Single Binary (Go 1.26)                      │
+│                                                                        │
+│   Chi Router ──► Security Middleware (Argon2id, CSRF, RBAC, Rate-Limit)│
+│                                                                        │
+│   ┌────────────────────┬────────────────────┬──────────────────────┐   │
+│   │ Realtime Hub (WS)  │ Alert Engine       │ Metrics History      │   │
+│   ├────────────────────┼────────────────────┼──────────────────────┤   │
+│   │ Docker Gateway     │ Host Collector     │ Netflow & IPAM       │   │
+│   │ (Strict Allowlist) │ (/proc & /sys)     │ (Procfs + Sockets)   │   │
+│   ├────────────────────┼────────────────────┼──────────────────────┤   │
+│   │ Container Inventory│ GPU Manager        │ Embedded SQLite      │   │
+│   │ (Events & Stats)   │ (NVML / DRM)       │ (Pure Go Driver)     │   │
+│   └────────────────────┴────────────────────┴──────────────────────┘   │
+└───────────────────────────────────┬────────────────────────────────────┘
+                                    │ Mounts & Engine Socket
+                                    ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                       Host & Docker Infrastructure                     │
+│   /var/run/docker.sock       /proc & /sys          Persistent /data    │
+│   (Docker Engine API)    (Host Telemetry)       (SQLite DB & Config)   │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, TypeScript, Tailwind CSS v4, Vite, @xyflow/react, Lucide Icons, Recharts |
+| Backend | Go 1.26, Chi v5 HTTP router, Coder WebSocket, pure-Go SQLite |
+| Metrics Engine | Real-time cgroup v1/v2 parser, Linux procfs collector, NVIDIA NVML, Linux DRM |
+| Security | Argon2id password hashing, synchronized CSRF tokens, strict Docker Gateway allowlist, non-root container |
+| Packaging | Multi-arch Docker (`linux/amd64`, `linux/arm64`), single standalone binary, embedded SPA & SQLite |
+
+## Configuration & Environment Variables
+
+Orbit is configured via environment variables in `docker-compose.yml` or your `.env` file:
+
+### Server & Storage
+
+| Variable | Default | Description |
+|---|---|---|
+| `ORBIT_LISTEN` | `:8787` (or `:8080`) | Listen address and port for web UI and API. |
+| `ORBIT_DATA_DIR` | `/data` | Path inside container where SQLite database and configs are stored. |
+| `ORBIT_DOCKER_HOST` | `unix:///var/run/docker.sock` | Docker Engine API endpoint (Unix socket or TCP socket proxy). |
+| `ORBIT_LOG_LEVEL` | `info` | Logging verbosity (`debug`, `info`, `warn`, `error`). |
+
+### Security & Feature Gates
+
+| Variable | Default | Description |
+|---|---|---|
+| `ORBIT_ENABLE_ACTIONS` | `false` | Enable container management actions (start, stop, restart, pause). Defaults to read-only. |
+| `ORBIT_ENABLE_DESTRUCTIVE` | `false` | Enable container deletion, image pruning, and volume removal. Requires `ORBIT_ENABLE_ACTIONS=true`. |
+| `ORBIT_TRUST_PROXY` | `false` | Trust `X-Forwarded-For` and `X-Real-IP` headers from reverse proxies (Traefik, Nginx, Caddy). |
+| `ORBIT_TRUSTED_ORIGINS` | `""` | Comma-separated list of allowed origins for WebSocket connections and CORS. |
+| `ORBIT_SECURE_COOKIES` | `auto` | Enforce `Secure` attribute on cookies (`auto`, `true`, `false`). |
+| `ORBIT_SESSION_TTL` | `168h` | Session lifetime before re-login is required (e.g. `168h` = 7 days). |
+| `ORBIT_SESSION_IDLE` | `12h` | Maximum idle inactivity before session expires. |
+
+### Telemetry & Hardware
+
+| Variable | Default | Description |
+|---|---|---|
+| `ORBIT_GPU` | `auto` | GPU telemetry mode (`auto` detects NVIDIA NVML and AMD/Intel DRM, `off` disables). |
+| `ORBIT_EBPF` | `auto` | eBPF socket monitoring mode (`auto`, `on`, `off`). |
+| `ORBIT_MAX_STATS_STREAMS` | `250` | Maximum concurrent `docker stats` streams multiplexed by backend. |
+| `ORBIT_HOST_PROC` | `/host/proc` | Host `/proc` filesystem mount point. |
+| `ORBIT_HOST_SYS` | `/host/sys` | Host `/sys` filesystem mount point. |
+| `ORBIT_HOST_ETC` | `/host/etc` | Host `/etc` mount point (for `/etc/os-release`). |
+| `ORBIT_HOST_ROOTFS` | `/host/rootfs` | Host root filesystem mount point for disk stats. |
+
+### Permissions & System
+
+| Variable | Default | Description |
+|---|---|---|
+| `DOCKER_GID` | `999` | Host docker group ID to grant non-root container user access to `/var/run/docker.sock`. |
+| `ORBIT_UID` | `10001` | Non-root user ID inside container. |
+| `ORBIT_GID` | `10001` | Non-root group ID inside container. |
+| `ORBIT_KEEP_ROOT` | `false` | Run container process as root without dropping privileges. |
+| `ORBIT_DEV` | `false` | Development mode flag enabling debug endpoints. |
+
+## Development
+
+```bash
+# Backend development
+cd backend
+go run ./cmd/orbit
+
+# Frontend development
+cd frontend
+npm install
+npm run dev
+```
+
+## Documentation
+
+| Document | Description |
+|---|---|
+| [System Architecture](docs/ARCHITECTURE.md) | Architectural diagram, metric calculation formulas (CFS deltas, cgroup v1/v2), and telemetry |
+| [CasaOS & Linux Installation](docs/INSTALLATION.md) | Detailed installation instructions for CasaOS, ZimaOS, and bare Linux servers |
+| [Security Concept](docs/SECURITY.md) | Defense-in-depth model, Docker socket protection, Argon2id, CSRF, and non-root execution |
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

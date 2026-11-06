@@ -343,3 +343,120 @@ When an E2E test fails against a live backend or frontend deployment:
    - For backend endpoint schema or telemetry discrepancies ($\text{F01}-\text{F03}, \text{F09}-\text{F11}$): Escalate to `worker_backend_m1`.
    - For UI rendering or TypeScript interface bugs ($\text{F04}-\text{F08}$): Escalate to `worker_frontend_m2` or `worker_frontend_m3`.
    - For build errors or container runtime issues ($\text{F12}-\text{F13}$): Escalate to `worker_integration_m4`.
+
+
+---
+
+## 9. Track B: Production Deployment & UI Polish Test Infrastructure
+
+### 9.1 Overview & Architecture
+
+Track B extends the E2E test suite to comprehensively validate the production deployment readiness and visual polish of the Orbit platform. It ensures:
+1. **Sidebar Layout & Header Integrity**: Guarantees zero visual collision between the 28px logo box and the expand chevron button in collapsed state (`w-16` / 64px) by verifying floating edge-mounted positioning on the border seam (`absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6`). Ensures horizontal centering of the brand logo and all navigation icons on the $x = 32\text{px}$ vertical centerline.
+2. **13-View UI & Dark Theme Audit**: Audits all 13 application views (Dashboard, Containers, Container Detail, Network Flow, Networks, Images, Volumes, GPU Monitoring, Events, Logs, Settings, Login Modal, Setup Modal) for correct routing, modal JSX dialog rendering (`showConfigModal`), active container gating (`prefs.showContainers`), elimination of CSS class typos (`py-0.2`), responsive overflow containers (`overflow-x-auto`), and standard dark console tokens (`#111111`, `#181818`, `#282828`, `backdrop-blur-sm`).
+3. **Lynx-Modeled GitHub Actions CI/CD**: Verifies `.github/workflows/ci.yml`, `docker-publish.yml`, and `release.yml` for syntax, triggers (`push`/`pull_request` on `main`/`master`, `tags: ['v*']`), Go test and Vite build jobs, QEMU and Buildx multi-arch targeting (`linux/amd64`, `linux/arm64`), dual registry authentication (Docker Hub `moresonsunn/orbit` and GHCR `ghcr.io`), and GHA caching (`type=gha,mode=max`).
+4. **Production Docker Compose Configurations**: Validates `docker-compose.yml` and `docker-compose.prod.yml` against the Compose specification, ensuring host Docker daemon socket mounting (`/var/run/docker.sock`), persistent data mounting (`/data`), standard restart policies (`unless-stopped`), port mapping (`8080:8080`), security hardening (`no-new-privileges: true`), GID delegation (`${DOCKER_GID:-999}`), and JSON log rotation (`max-size: 20m`, `max-file: 5`).
+5. **Dynamic Healthcheck Port Resolution**: Verifies dynamic port resolution for the `/app/orbit -healthcheck` CLI flag, ensuring arbitrary listen addresses specified in `ORBIT_LISTEN` (`:8080`, `:9090`, `0.0.0.0:8888`, `[::]:8080`, fallback `:8787`) are dynamically queried via HTTP GET on `http://127.0.0.1:<port>/api/v1/health` with exit code 0 on 200 OK and 1 on error or non-200.
+6. **Production Documentation & Status Badges**: Validates `README.md` for Lynx-standard production presentation: 5 centered status badges (CI Build, Docker pulls, Architecture, Release, License), 10 feature breakdown items, one-line quickstarts for `docker run` and `docker compose`, setup token extraction guide, and complete 22-variable environment configuration table.
+
+### 9.2 File Layout (`tests/e2e/`)
+| Path | Role & Content |
+|---|---|
+| `tests/e2e/deploy_ui_helpers.go` | Shared helpers: `FindRepoRoot`, `ResolveHealthcheckTargetURL`, `ExecuteHealthcheckSimulation`, authoritative reference contracts (`ReferenceSidebarContract`, `Reference13Views`, `ReferenceCIWorkflowSpec`, `ReferenceDockerPublishSpec`, `ReferenceComposeSpec`, `ReferenceReadmeSpec`). |
+| `tests/e2e/deploy_ui_tier1_test.go` | Tier 1: Primary Feature Coverage (30 tests across features D01–D06). |
+| `tests/e2e/deploy_ui_tier2_test.go` | Tier 2: Boundary & Corner Cases (30 tests across boundary areas B01–B06). |
+| `tests/e2e/deploy_ui_tier3_test.go` | Tier 3: Cross-Feature Interactions (10 pairwise and cross-module tests). |
+| `tests/e2e/deploy_ui_tier4_test.go` | Tier 4: Real-World Scenarios (5 multi-step production lifecycle scenarios). |
+
+### 9.3 Track B Comprehensive Test Case Catalog
+
+#### Tier 1: Feature Coverage (30 Tests)
+| Test ID | Area | Test Description | Authoritative Verification Logic |
+|---|---|---|---|
+| `TC_T1_D01_01` | Sidebar | SidebarWidthDimensions | Verifies collapsed width is 64px (`w-16`) and expanded is 224px (`w-56`). |
+| `TC_T1_D01_02` | Sidebar | LogoHorizontalCentering | Validates 28px logo box is centered at $x = 32\text{px}$ in 64px collapsed header. |
+| `TC_T1_D01_03` | Sidebar | ExpandToggleFloatingPositioning | Verifies edge toggle button positioned at `-right-3`, eliminating logo box collision. |
+| `TC_T1_D01_04` | Sidebar | NavigationItemsIconCentering | Confirms navigation icon containers use `justify-center px-0` centering at $x = 32\text{px}$. |
+| `TC_T1_D01_05` | Sidebar | FooterAvatarVerticalSeamAlignment | Verifies user profile avatar in footer aligns with the 32px vertical centerline. |
+| `TC_T1_D02_01` | 13 Views | All13ViewsRegisteredAndExported | Validates existence and valid component structure for all 13 application views. |
+| `TC_T1_D02_02` | 13 Views | DashboardCustomizeModalRestoration | Verifies `showConfigModal` state and preference dialog rendering in Dashboard. |
+| `TC_T1_D02_03` | 13 Views | ActiveContainersPreferenceGating | Validates active containers table rendering is gated by `prefs.showContainers`. |
+| `TC_T1_D02_04` | 13 Views | CssTypoRemediation | Verifies absence of non-standard Tailwind class `py-0.2` across network views. |
+| `TC_T1_D02_05` | 13 Views | ViewResponsiveAndBackdropTokens | Confirms `overflow-x-auto` on ContainerDetail tabs and `backdrop-blur-sm` on modals. |
+| `TC_T1_D03_01` | CI/CD | CIWorkflowTriggersAndMatrix | Validates `.github/workflows/ci.yml` push/PR triggers, Go test, and Vite build jobs. |
+| `TC_T1_D03_02` | CI/CD | DockerPublishMultiArchPlatforms | Validates multi-arch targeting for `linux/amd64` and `linux/arm64` via Buildx. |
+| `TC_T1_D03_03` | CI/CD | DualRegistryAuthentication | Verifies authentication configured for Docker Hub (`moresonsunn/orbit`) and GHCR. |
+| `TC_T1_D03_04` | CI/CD | GitHubActionsCacheStrategy | Confirms GitHub Actions caching (`type=gha,mode=max`) configured in buildx. |
+| `TC_T1_D03_05` | CI/CD | ReleaseWorkflowTagAutomation | Verifies tag automation trigger on `tags: ['v*']` utilizing `softprops/action-gh-release`. |
+| `TC_T1_D04_01` | Compose | ComposeSyntaxAndServices | Validates `docker-compose.yml` and `prod.yml` define service `orbit` and image. |
+| `TC_T1_D04_02` | Compose | VolumeMountsHostSocketAndData | Validates `/var/run/docker.sock` and `/data` volume mounts across compose files. |
+| `TC_T1_D04_03` | Compose | RestartPolicyUnlessStopped | Confirms `unless-stopped` restart policy is defined. |
+| `TC_T1_D04_04` | Compose | ProductionSecurityAndGroupAdd | Verifies `no-new-privileges: true` and `DOCKER_GID` group assignment. |
+| `TC_T1_D04_05` | Compose | LogRotationConfiguration | Confirms `json-file` log rotation with `max-size: 20m` and `max-file: 5`. |
+| `TC_T1_D05_01` | Healthcheck | DefaultPortResolution | Verifies empty `ORBIT_LISTEN` resolves to `http://127.0.0.1:8787/api/v1/health`. |
+| `TC_T1_D05_02` | Healthcheck | CustomPortResolution | Verifies `ORBIT_LISTEN=:8080` resolves to `http://127.0.0.1:8080/api/v1/health`. |
+| `TC_T1_D05_03` | Healthcheck | HostAndPortResolution | Verifies `0.0.0.0:9090` resolves to `http://127.0.0.1:9090/api/v1/health`. |
+| `TC_T1_D05_04` | Healthcheck | LiveHealthProbeSuccess | Executes live probe against healthy endpoint, asserting exit code 0. |
+| `TC_T1_D05_05` | Healthcheck | ConnectionRefusedExitCode | Executes probe against closed port, asserting exit code 1. |
+| `TC_T1_D06_01` | Docs | FiveCenteredStatusBadges | Validates presence of 5 status badges (CI, Docker, Arch, Release, License). |
+| `TC_T1_D06_02` | Docs | TenFeatureBreakdownItems | Verifies 10 core capability items documented with category markers. |
+| `TC_T1_D06_03` | Docs | QuickstartOneLiners | Validates quickstart commands for both `docker run` and `docker compose`. |
+| `TC_T1_D06_04` | Docs | SetupTokenRetrievalGuide | Confirms documentation of setup token retrieval via container logs. |
+| `TC_T1_D06_05` | Docs | CompleteConfigTable22Vars | Validates configuration reference documenting all 22 environment variables. |
+
+#### Tier 2: Boundary & Corner Cases (30 Tests)
+| Test ID | Area | Test Description | Authoritative Verification Logic |
+|---|---|---|---|
+| `TC_T2_B01_01` | Boundaries | WidthLowerBoundConstraint | Proves mathematically that 22px toggle cannot fit in 8px header margin without collision. |
+| `TC_T2_B01_02` | Boundaries | WidthUpperBoundConstraint | Validates maximum expanded width 224px (`w-56`) containment. |
+| `TC_T2_B01_03` | Boundaries | FloatingToggleEdgeMargin | Validates `-right-3` offset (-12px) aligns button center precisely on 64px border seam. |
+| `TC_T2_B01_04` | Boundaries | CollapsedTextTruncation | Verifies brand title is suppressed in collapsed mode (`!collapsed`). |
+| `TC_T2_B01_05` | Boundaries | NavIconPaddingBoundary | Verifies nav buttons use `px-0` to eliminate icon drift in collapsed state. |
+| `TC_T2_B02_01` | Boundaries | PortEnvVariableFallback | Validates `${ORBIT_PORT:-8080}` expansion handles unset vs custom values. |
+| `TC_T2_B02_02` | Boundaries | DockerGidFallback | Validates `${DOCKER_GID:-999}` expansion handles unset vs custom GID. |
+| `TC_T2_B02_03` | Boundaries | EnableActionsDefaultFalse | Validates `ORBIT_ENABLE_ACTIONS` defaults to false for read-only safety. |
+| `TC_T2_B02_04` | Boundaries | EnableDestructiveDefaultFalse | Validates `ORBIT_ENABLE_DESTRUCTIVE` defaults to false. |
+| `TC_T2_B02_05` | Boundaries | CustomDataDirResolution | Validates custom data volume paths preserve `/data` container mount target. |
+| `TC_T2_B03_01` | Boundaries | PortOnlyWithoutColon | Verifies bare port `"8080"` resolves cleanly to port 8080. |
+| `TC_T2_B03_02` | Boundaries | IPv6ListenFormat | Verifies IPv6 listen string `"[::]:8080"` resolves cleanly to port 8080. |
+| `TC_T2_B03_03` | Boundaries | PortBoundaryValues | Verifies boundary port values `1` and `65535` parse cleanly. |
+| `TC_T2_B03_04` | Boundaries | WhitespaceAndTrailingSlashes | Verifies listen string with whitespace and trailing slash trims cleanly. |
+| `TC_T2_B03_05` | Boundaries | InvalidListenAddressFallback | Verifies malformed listen addresses fall back safely to port 8787. |
+| `TC_T2_B04_01` | Boundaries | MobileViewport375px | Verifies collapsed sidebar leaves 311px for content on 375px mobile viewports. |
+| `TC_T2_B04_02` | Boundaries | TabletViewport768px | Verifies expanded sidebar leaves 544px on 768px tablet viewports. |
+| `TC_T2_B04_03` | Boundaries | ContainerDetailTabScroll | Confirms `overflow-x-auto` tab scrolling prevents wrap blowout on small screens. |
+| `TC_T2_B04_04` | Boundaries | SelectElementMaxConstraints | Confirms container selector dropdown has width truncation tokens. |
+| `TC_T2_B04_05` | Boundaries | ModalBackdropBlurClass | Validates modal backdrop blur uses supported Tailwind class `backdrop-blur-sm`. |
+| `TC_T2_B05_01` | Boundaries | PortMappingSyntaxIntegrity | Validates port mappings are quoted strings to avoid YAML base-60 float bugs. |
+| `TC_T2_B05_02` | Boundaries | DockerSocketReadOnlyFlag | Validates Docker socket path integrity. |
+| `TC_T2_B05_03` | Boundaries | ProcMountReadOnlyFlag | Validates host `/proc` mount is strictly read-only (`:ro`). |
+| `TC_T2_B05_04` | Boundaries | SysMountReadOnlyFlag | Validates host `/sys` mount is strictly read-only (`:ro`). |
+| `TC_T2_B05_05` | Boundaries | EtcOsReleaseReadOnlyFlag | Validates host `/etc/os-release` mount is strictly read-only (`:ro`). |
+| `TC_T2_B06_01` | Boundaries | Http500InternalServerError | Verifies healthcheck returns exit code 1 when endpoint returns HTTP 500. |
+| `TC_T2_B06_02` | Boundaries | Http503ServiceUnavailable | Verifies healthcheck returns exit code 1 when endpoint returns HTTP 503. |
+| `TC_T2_B06_03` | Boundaries | Http404NotFound | Verifies healthcheck returns exit code 1 when health endpoint is missing. |
+| `TC_T2_B06_04` | Boundaries | TimeoutThresholdEnforcement | Validates healthcheck enforces 2-second timeout client on slow responses. |
+| `TC_T2_B06_05` | Boundaries | NonLocalhostListenInterception | Confirms healthcheck always probes loopback `127.0.0.1` locally. |
+
+#### Tier 3: Cross-Feature Interactions (10 Tests)
+| Test ID | Interaction | Verification Logic |
+|---|---|---|
+| `Combo01` | CI Matrix $\to$ Dockerfile | Verifies Go 1.26 and Node 22 CI actions align with Dockerfile multi-stage build stages. |
+| `Combo02` | Compose $\to$ Dynamic Healthcheck | Verifies compose `ORBIT_LISTEN=:8080` matches dynamic healthcheck query targeting port 8080. |
+| `Combo03` | Docker Publish $\to$ Compose Image | Verifies published image in CI matches image tag in `docker-compose.prod.yml`. |
+| `Combo04` | Sidebar Tabs $\to$ 13 App Views | Verifies all navigation tab IDs in `Sidebar.tsx` map to registered routes in `App.tsx`. |
+| `Combo05` | Dashboard Modal $\to$ Preferences | Verifies all 8 customize modal preference toggles correlate with Dashboard widget gates. |
+| `Combo06` | Compose Mounts $\to$ Backend Config | Verifies host mounts `/proc` and `/sys` match backend default config paths (`ORBIT_HOST_PROC`). |
+| `Combo07` | Compose Log Rotation $\to$ Storage | Verifies log rotation parameters cap container disk utilization to 100MB maximum. |
+| `Combo08` | README Quickstart $\to$ Compose Spec | Verifies quickstart `docker run` flags align identically with `docker-compose.prod.yml`. |
+| `Combo09` | README Config $\to$ Backend Config | Verifies all 22 environment variables documented in README exist in `backend/internal/config`. |
+| `Combo10` | CI Triggers $\to$ Branch & Tag Releases | Verifies CI/CD pipeline triggers on branch pushes (`main`/`master`) and version tags (`v*`). |
+
+#### Tier 4: Real-World Scenarios (5 Comprehensive Scenarios)
+| Scenario ID | Scenario Name | Workflow & Verification |
+|---|---|---|
+| `Scenario1` | Production Server Deployment Lifecycle | Full compose spec validation: service definition, image pulling, restart resilience (`unless-stopped`), socket/data volume isolation, read-only host telemetry mounts, and security privilege hardening. |
+| `Scenario2` | Dynamic Port & Healthcheck Lifecycle | Full custom port lifecycle: spin up mock Orbit server on custom port $\to$ resolve dynamic target URL $\to$ execute healthcheck simulation asserting exit code 0 on healthy response $\to$ simulate server degradation asserting exit code 1. |
+| `Scenario3` | Multi-Arch CI/CD Pipeline to Registry | Simulates end-to-end publishing pipeline: git push with semantic tag $\to$ Go backend checks $\to$ Frontend bundle build $\to$ QEMU/Buildx multi-arch platforms (`linux/amd64`, `linux/arm64`) $\to$ dual registry authentication. |
+| `Scenario4` | Executive Console Viewport & Modal Traversal | Audits all 13 application views for clean routing and component export $\to$ verifies collision-free geometry in collapsed sidebar ($x = 32\text{px}$ centering) $\to$ audits Dashboard customize modal state controls and responsive tab scrolling. |
+| `Scenario5` | Production Governance & Documentation Compliance | Audits README.md for Lynx-modeled production standards: 5 centered status badges, quickstart copy-paste safety, setup token retrieval guide, and complete 22-variable configuration reference. |

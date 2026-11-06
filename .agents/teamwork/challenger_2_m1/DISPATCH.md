@@ -1,21 +1,17 @@
-## 2026-11-05T23:50:09Z
-You are Challenger 2 for Milestone M1: Backend Telemetry & Enriched Endpoints.
+## 2026-11-06T01:14:41Z
+You are challenger_2_m1, an empirical challenger agent.
+Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1
 
-Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1\
+MANDATORY FIRST STEP:
+Read c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md before starting any work.
+Also read c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md.
+Also read worker report: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_m1_ui\handoff.md.
 
-You MUST read:
-1. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md
-2. c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md
-3. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_backend_m1\handoff.md
-
-Objective:
-Empirically verify the API serialization and live runtime behavior of M1:
-1. Test JSON serialization of `EnrichedDockerNetwork` and `NetflowSnapshot`:
-   - Ensure backward compatibility: `Id`, `Name`, `Driver`, `Scope`, `IPAM`, `Containers` serialize correctly.
-   - Ensure no nil slice serialization: `containerTraffic`, `connections`, `protocolStats` serialize to `[]`, not `null`.
-2. Test Netflow Totals calculation:
-   - When 0 containers or stats are present, verify `TotalRxBps`, `TotalTxBps`, `ActiveConnections`, `SecurityAlertsCount` do not panic or produce NaN.
-3. Verify `go test ./...` and `go build ./...` in `backend/`.
-4. Clean up any test artifacts outside your working directory.
-5. Write your report to `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1\handoff.md` with explicit verdict (APPROVE or REQUEST_CHANGES).
-6. Send completion message with your verdict to parent.
+SCOPE (Empirical Challenge - Dashboard Customize Modal & State Logic):
+1. Empirically verify `frontend/src/pages/Dashboard.tsx`:
+   - Inspect the Customize Modal dialog: does it render on `showConfigModal === true`?
+   - Test preset configurations (`minimal`, `balanced`, `pro`): do they set the expected boolean fields?
+   - Test widget toggle reactivity: does clicking a toggle update state and persist to `localStorage`?
+   - Test `prefs.showContainers`: when false, is the container table omitted from the DOM? When true, is it rendered?
+2. Execute code analysis or write a test script to verify state transitions and DOM gating.
+3. Deliver your verdict (APPROVE or REQUEST_CHANGES) with empirical evidence in `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1\handoff.md` and notify orchestrator.

@@ -1,54 +1,57 @@
-# BRIEFING — 2026-11-05T23:56:00Z
+# BRIEFING — 2026-11-06T01:20:00Z
 
 ## Mission
-Empirically verify API serialization and live runtime behavior of Milestone M1 (Backend Telemetry & Enriched Endpoints) for Orbit.
+Empirical challenge and adversarial testing of Dashboard Customize Modal & State Logic in frontend/src/pages/Dashboard.tsx.
 
 ## 🔒 My Identity
 - Archetype: empirical challenger
 - Roles: critic, specialist
-- Working directory: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1\
-- Original parent: 4572cb91-25c6-48e4-bf11-6d7c5a635dd0
-- Milestone: M1 (Backend Telemetry & Enriched Endpoints)
+- Working directory: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\challenger_2_m1
+- Original parent: 76249bc7-c19e-4897-a32b-2732d28b3d60
+- Milestone: m1
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code directly
-- Test with empirical test suites / scripts executed directly
-- Clean up any temporary test artifacts outside the working directory
-- Provide clear verdict: APPROVE or REQUEST_CHANGES
+- Review-only — do NOT modify implementation code
+- Run tests and verification code empirically; do not trust unverified claims
+- Layout compliance: .agents/teamwork/ contains only metadata, no source/test code
+- Deliver hard handoff with APPROVE or REQUEST_CHANGES verdict
 
 ## Current Parent
-- Conversation ID: 4572cb91-25c6-48e4-bf11-6d7c5a635dd0
-- Updated: 2026-11-05T23:56:00Z
+- Conversation ID: 76249bc7-c19e-4897-a32b-2732d28b3d60
+- Updated: 2026-11-06T01:20:00Z
 
 ## Review Scope
-- **Files to review**: `backend/internal/api/handlers.go`, `backend/internal/netflow/builder.go`, `backend/internal/netflow/types.go`, `backend/internal/netflow/socket_reader.go`, `backend/internal/netflow/protocols.go`
-- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_backend_m1/handoff.md`
+- **Files to review**: `frontend/src/pages/Dashboard.tsx`, `frontend/src/lib/dashboardConfig.ts`
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1_ui/handoff.md`
 - **Review criteria**:
-  1. JSON serialization of `EnrichedDockerNetwork` and `NetflowSnapshot`:
-     - Backward compatibility: `Id`, `Name`, `Driver`, `Scope`, `IPAM`, `Containers` serialize correctly.
-     - No nil slice serialization: `containerTraffic`, `connections`, `protocolStats` serialize to `[]`, not `null`.
-  2. Netflow Totals calculation:
-     - When 0 containers or stats are present, verify `TotalRxBps`, `TotalTxBps`, `ActiveConnections`, `SecurityAlertsCount` do not panic or produce NaN.
-  3. Verify `go test ./...` and `go build ./...` in `backend/`.
+  - Modal rendering when `showConfigModal === true`
+  - Preset configurations (`minimal`, `balanced`, `pro`) field accuracy
+  - Widget toggle reactivity and `localStorage` persistence
+  - DOM gating of container table via `prefs.showContainers`
 
 ## Key Decisions Made
-- Executed empirical test harnesses for `EnrichedDockerNetwork` backward compatibility and `NetflowSnapshot` JSON slice serialization.
-- Verified totals math under 0 containers, empty stats, and mixed container conditions.
-- Confirmed zero NaN/Inf occurrences.
-- Verified clean `go test -count=1 ./...` and `go build ./...` passes across the backend.
-- Cleaned up all temporary test harnesses. Verdict: APPROVE.
+- Authored and executed two independent test harnesses: `tests/verify_dashboard_modal.mjs` (74 assertions) and `tests/e2e/dashboard_customize_challenge_test.go` (4 subtests).
+- Verified error resilience of `dashboardConfig.ts` against corrupted JSON, disabled localStorage (SecurityError), and quota limits (QuotaExceededError).
+- Verified DOM gating: container table is rendered if and only if `prefs.showContainers` is true; exactly one table exists in `Dashboard.tsx`.
+- Final verdict: APPROVE.
+
+## Artifact Index
+- `.agents/teamwork/challenger_2_m1/DISPATCH.md` — Inbound instructions
+- `.agents/teamwork/challenger_2_m1/progress.md` — Liveness & progress tracking
+- `.agents/teamwork/challenger_2_m1/handoff.md` — Final verdict report
+- `tests/verify_dashboard_modal.mjs` — JS empirical challenge harness
+- `tests/e2e/dashboard_customize_challenge_test.go` — Go E2E challenge test
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - H1: `EnrichedDockerNetwork` shadows or breaks Docker standard inspect fields (`Id`, `Name`, `Driver`, `Scope`, `IPAM`, `Containers`). -> Disproved: `network.Summary` embedding preserves root tags; `Containers` serialized at root as expected.
-  - H2: Empty slices (`containerTraffic`, `connections`, `protocolStats`) serialize to `null`. -> Disproved: Slices are initialized non-nil (`[]`), serializing to `[]`.
-  - H3: Zero containers/stats produce division by zero or NaN in `Totals` or `calculateSubnetDetails`. -> Disproved: Code guards `totalIPs > 0`, `math.IsNaN` check passes, all totals are 0.0 without panic.
-- **Vulnerabilities found**: None.
-- **Untested angles**: Full live kernel eBPF packet capture (hardware/OS dependent, marked optional in design).
+  - Modal fails to mount/unmount cleanly on boolean flag transitions -> PASSED (unmounts cleanly).
+  - Presets omit or misconfigure boolean fields -> PASSED (minimal, balanced, pro all adhere to spec).
+  - Rapid widget toggles cause state drift or fail to persist -> PASSED (functional state updater ensures atomic updates & writes to localStorage).
+  - Malformed localStorage data crashes the dashboard -> PASSED (try/catch recovers with balanced defaults).
+  - Container table leaks into DOM when showContainers is false -> PASSED (DOM gating strictly omits table).
+- **Vulnerabilities found**: 0 defects or regressions found in the implementation.
+- **Untested angles**: WebSocket disconnect handling is simulated; live backend streaming was tested via mock telemetry.
 
 ## Loaded Skills
-None specified in dispatch.
-
-## Artifact Index
-- `handoff.md` — Final empirical challenge report with APPROVE verdict
+None specified.

@@ -32,7 +32,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onSuccess }) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm font-sans">
       <div className="w-full max-w-sm bg-[#181818] border border-[#282828] rounded-xl shadow-2xl p-7">
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-9 h-9 rounded-md bg-blue-600 text-white font-semibold text-sm mb-3">

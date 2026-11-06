@@ -1,30 +1,17 @@
-## 2026-11-05T23:49:40Z
+## 2026-11-06T01:14:28Z
+You are reviewer_2_m1, an independent code review agent.
+Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_2_m1
 
-You are Reviewer 2 for Milestone M1: Backend Telemetry & Enriched Endpoints.
+MANDATORY FIRST STEP:
+Read c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md before starting any work.
+Also read c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md.
+Also read worker report: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_m1_ui\handoff.md.
 
-Your working directory is: c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_2_m1\
+SCOPE (Review Milestone M1):
+1. Independently inspect `frontend/src/components/layout/Sidebar.tsx` for layout regressions, dark theme styling (`#141414`, `#222222`, `#2e2e2e`), and smooth responsive behavior.
+2. Independently inspect `frontend/src/pages/Dashboard.tsx` customize modal for accessibility, Escape key handling, backdrop click, and localStorage persistence.
+3. Verify view polish fixes (`NetworkFlow.tsx`, `Networks.tsx`, `ContainerDetail.tsx`, `GPU.tsx`, `Settings.tsx`, `Containers.tsx`, modals).
+4. Run frontend verification: `npm --prefix frontend run build`.
+5. Run Go tests: `cd backend && go test ./...`.
 
-You MUST read:
-1. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\ORIGINAL_REQUEST.md
-2. c:\Users\phili\Documents\GitHub\Orbit\PROJECT.md
-3. c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\worker_backend_m1\handoff.md
-
-Objective:
-Independently review the backend code changes made for M1 in:
-- `backend/internal/api/handlers.go`
-- `backend/internal/api/handlers_test.go`
-- `backend/internal/netflow/types.go`
-- `backend/internal/netflow/builder.go`
-- `backend/internal/netflow/socket_reader.go`
-- `backend/internal/netflow/protocols.go`
-- `backend/internal/netflow/netflow_test.go`
-
-Check:
-1. Conformance with `PROJECT.md § Interface Contracts`: Are `EnrichedDockerNetwork` and `NetflowSnapshot` fields strictly matching? Is backward compatibility preserved?
-2. Robustness and edge cases: nil pointers, empty slices (avoiding JSON null), malformed CIDRs, container states, error handling.
-3. Port security classification: Does `AssessPortSecurity` properly categorize critical, caution, safe, and internal tiers?
-4. Run tests and build:
-   - `cd backend; go test ./...`
-   - `cd backend; go build ./...`
-5. Write your 5-component report to `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_2_m1\handoff.md` with explicit verdict (APPROVE or REQUEST_CHANGES).
-6. Send completion message with your verdict to parent.
+Deliver an objective verdict (APPROVE or REQUEST_CHANGES) with clear evidence in `c:\Users\phili\Documents\GitHub\Orbit\.agents\teamwork\reviewer_2_m1\handoff.md` and send a completion message to the orchestrator.

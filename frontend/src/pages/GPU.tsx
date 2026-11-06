@@ -33,7 +33,7 @@ export const GPUPage: React.FC = () => {
 
   if (loading || !telemetry) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400 font-mono text-xs">
+      <div className="flex items-center justify-center h-64 text-neutral-400 font-mono text-xs">
         Lade GPU-Telemetrie...
       </div>
     );

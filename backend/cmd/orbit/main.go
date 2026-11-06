@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -28,8 +29,17 @@ import (
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "-healthcheck" {
+		port := strings.TrimRight(strings.TrimSpace(os.Getenv("ORBIT_LISTEN")), "/")
+		if port == "" {
+			port = ":8787"
+		}
+		if idx := strings.LastIndex(port, ":"); idx != -1 {
+			port = port[idx:]
+		} else {
+			port = ":" + port
+		}
 		client := http.Client{Timeout: 2 * time.Second}
-		resp, err := client.Get("http://127.0.0.1:8787/api/v1/health")
+		resp, err := client.Get("http://127.0.0.1" + port + "/api/v1/health")
 		if err != nil || resp.StatusCode != http.StatusOK {
 			os.Exit(1)
 		}

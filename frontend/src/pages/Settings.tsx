@@ -50,7 +50,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ authStatus }) => {
 
   if (loading || !settings) {
     return (
-      <div className="flex items-center justify-center h-64 text-slate-400 font-mono text-xs">
+      <div className="flex items-center justify-center h-64 text-neutral-400 font-mono text-xs">
         Lade Einstellungen...
       </div>
     );

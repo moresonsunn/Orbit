@@ -1,0 +1,48 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract Tag Info
+        id: meta
+        run: |
+          TAG="${GITHUB_REF##*/}"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release with Auto Notes
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Orbit ${{ steps.meta.outputs.tag }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ### Orbit Release ${{ steps.meta.outputs.tag }}
+
+            **Docker Images:**
+            - `moresonsunn/orbit:${{ steps.meta.outputs.tag }}`
+            - `ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.tag }}`
+            - `ghcr.io/${{ github.repository }}:latest`
+
+            **Architectures:**
+            - `linux/amd64`
+            - `linux/arm64`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
