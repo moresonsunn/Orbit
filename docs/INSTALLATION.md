@@ -13,7 +13,7 @@ Orbit is an ultra-fast, lightweight Docker infrastructure and real-time monitori
   - `linux/arm64` (Raspberry Pi 4/5, Orange Pi, Rockchip, Apple Silicon Server)
 - **Ressourcenbedarf / Resource Usage**: ca. 30–50 MB RAM, < 0.5 % CPU im Leerlauf
 - **Docker Socket**: `/var/run/docker.sock` (für Container- und Host-Metriken)
-- **Netzwerk / Network**: Standardport `8080` (Web UI und HTTP REST / WebSocket API)
+- **Netzwerk / Network**: Standardport `8787` (Web UI und HTTP REST / WebSocket API)
 
 ---
 
@@ -38,9 +38,9 @@ services:
     container_name: orbit
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8787:8787"
     environment:
-      ORBIT_LISTEN: ":8080"
+      ORBIT_LISTEN: ":8787"
       ORBIT_DATA_DIR: "/data"
       ORBIT_ENABLE_ACTIONS: "false"
       ORBIT_ENABLE_DESTRUCTIVE: "false"
@@ -56,7 +56,7 @@ services:
       - no-new-privileges:true
     x-casaos:
       ports:
-        - container: "8080"
+        - container: "8787"
           description:
             en_US: "Orbit Web UI and API Port"
       volumes:
@@ -79,7 +79,7 @@ services:
 x-casaos:
   id: dev.orbit.orbit
   main: orbit
-  port_map: "8080"
+  port_map: "8787"
   scheme: http
   index: /
   category: Developer
@@ -104,7 +104,7 @@ x-casaos:
 
 6. Klicke auf **„Übermitteln“** (**Submit**). CasaOS liest alle Metadaten automatisch ein:
    - Name: **Orbit**
-   - Web UI Port: **8080**
+   - Web UI Port: **8787**
    - Icon und Beschreibungen werden automatisch konfiguriert.
 7. Klicke auf **„Installieren“** (**Install**).
 8. Nach dem Download erscheint das Orbit-Icon direkt auf deinem CasaOS Desktop.
@@ -146,9 +146,9 @@ services:
     container_name: orbit
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8787:8787"
     environment:
-      - ORBIT_LISTEN=:8080
+      - ORBIT_LISTEN=:8787
       - ORBIT_DATA_DIR=/data
       - ORBIT_ENABLE_ACTIONS=false
       - ORBIT_ENABLE_DESTRUCTIVE=false
@@ -189,7 +189,7 @@ Aus Sicherheitsgründen besitzt Orbit **kein Standardpasswort**. Beim allererste
    ```
 2. Öffne Orbit im Browser unter:
    ```text
-   http://<deine-server-ip>:8080
+   http://<deine-server-ip>:8787
    ```
 3. Gib den Setup-Token ein und erstelle deinen Administrator-Benutzernamen und ein sicheres Passwort.
 4. Nach dem Speichern wird der Setup-Token unwiderruflich entwertet.

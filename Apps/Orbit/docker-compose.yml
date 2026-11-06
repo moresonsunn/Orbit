@@ -6,9 +6,9 @@ services:
     container_name: orbit
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8787:8787"
     environment:
-      ORBIT_LISTEN: ":8080"
+      ORBIT_LISTEN: ":8787"
       ORBIT_DATA_DIR: "/data"
       ORBIT_ENABLE_ACTIONS: "false"
       ORBIT_ENABLE_DESTRUCTIVE: "false"
@@ -24,7 +24,7 @@ services:
       - no-new-privileges:true
     x-casaos:
       ports:
-        - container: "8080"
+        - container: "8787"
           description:
             en_US: "Orbit Web UI and API Port"
             de_DE: "Orbit Web-Oberfläche und API-Port"
@@ -53,7 +53,7 @@ services:
 x-casaos:
   id: dev.orbit.orbit
   main: orbit
-  port_map: "8080"
+  port_map: "8787"
   scheme: http
   index: /
   category: Developer

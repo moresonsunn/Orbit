@@ -29,19 +29,20 @@ import (
 
 func main() {
 	if len(os.Args) > 1 && os.Args[1] == "-healthcheck" {
-		port := strings.TrimRight(strings.TrimSpace(os.Getenv("ORBIT_LISTEN")), "/")
-		if port == "" {
-			port = ":8787"
-		}
-		if idx := strings.LastIndex(port, ":"); idx != -1 {
-			port = port[idx:]
-		} else {
-			port = ":" + port
-		}
+		targetPort := config.ResolveHealthcheckPort()
 		client := http.Client{Timeout: 2 * time.Second}
-		resp, err := client.Get("http://127.0.0.1" + port + "/api/v1/health")
+		targetURL := fmt.Sprintf("http://127.0.0.1:%s/api/system/health", targetPort)
+		resp, err := client.Get(targetURL)
 		if err != nil || resp.StatusCode != http.StatusOK {
-			os.Exit(1)
+			// Fallback attempt to /api/v1/health for backward compatibility
+			fallbackURL := fmt.Sprintf("http://127.0.0.1:%s/api/v1/health", targetPort)
+			respFallback, errFallback := client.Get(fallbackURL)
+			if errFallback != nil || respFallback.StatusCode != http.StatusOK {
+				os.Exit(1)
+			}
+			_ = respFallback.Body.Close()
+		} else {
+			_ = resp.Body.Close()
 		}
 		os.Exit(0)
 	}
@@ -174,7 +175,11 @@ func main() {
 	}
 
 	go func() {
-		logger.Info(fmt.Sprintf("Orbit listening on http://0.0.0.0%s", cfg.Listen))
+		displayAddr := cfg.Listen
+		if strings.HasPrefix(displayAddr, ":") {
+			displayAddr = "0.0.0.0" + displayAddr
+		}
+		logger.Info(fmt.Sprintf("Orbit listening on http://%s", displayAddr))
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			logger.Error("http server failed", "err", err)
 			os.Exit(1)

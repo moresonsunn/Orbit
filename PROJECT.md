@@ -30,7 +30,7 @@ Orbit delivers container management and infrastructure telemetry with an executi
                                       │ docker-compose.prod.yml              │
                                       │ - /var/run/docker.sock               │
                                       │ - /data persistent storage           │
-                                      │ - 8080:8080 port mapping             │
+                                      │ - 8787:8787 port mapping             │
                                       │ - unless-stopped restart policy      │
                                       └──────────────────┬───────────────────┘
                                                          │
@@ -53,8 +53,8 @@ Every feature identified during survey is inventoried below with its milestone a
 | 3 | 13-View UI & Browser Audit Polish | Audit and fix minor defects across all 13 views: fix `py-0.2` typos in `NetworkFlow.tsx` and `Networks.tsx`, add `overflow-x-auto` to `ContainerDetail.tsx` tabs, standardize backdrop blur to `backdrop-blur-sm`, standardize text grays, and polish localization. | M1 | R2, survey_ui |
 | 4 | GitHub Actions CI Workflow | Create `.github/workflows/ci.yml` running parallel Go backend tests (`go mod verify`, `go vet ./...`, `go test -v ./...`, `go build`) and Frontend typecheck & build (`npm ci`, `npm run build`, asset check) on push/PR to main/master. | M2 | R3, survey_cicd |
 | 5 | Multi-Arch Docker Publish Workflow | Create `.github/workflows/docker-publish.yml` and `.github/workflows/release.yml` with QEMU, Buildx, and GHA cache, publishing multi-arch images (`linux/amd64`, `linux/arm64`) to Docker Hub (`moresonsunn/orbit`) and GHCR (`ghcr.io/${{ github.repository }}`). | M2 | R3, survey_cicd |
-| 6 | Production Docker Compose Configurations | Create `docker-compose.yml` (development/standalone) and `docker-compose.prod.yml` (production server) with `/var/run/docker.sock` and persistent `/data` volume mounts, `unless-stopped` restart policy, `8080:8080` port mapping, and log rotation. | M3 | R4, survey_deploy |
-| 7 | Dynamic Healthcheck Port Resolution | Update `backend/cmd/orbit/main.go` line 30 so `/app/orbit -healthcheck` dynamically queries the port specified by `ORBIT_LISTEN` (handling `:8080`, `:8787`, etc.). | M3 | R4, survey_deploy |
+| 6 | Production Docker Compose Configurations | Create `docker-compose.yml` (development/standalone) and `docker-compose.prod.yml` (production server) with `/var/run/docker.sock` and persistent `/data` volume mounts, `unless-stopped` restart policy, `8787:8787` port mapping, and log rotation. | M3 | R4, survey_deploy |
+| 7 | Dynamic Healthcheck Port Resolution | Update `backend/cmd/orbit/main.go` line 30 so `/app/orbit -healthcheck` dynamically queries the port specified by `ORBIT_LISTEN` (handling `:8787`, custom ports, etc.). | M3 | R4, survey_deploy |
 | 8 | Production README & Status Badges | Rewrite `README.md` modeled after Lynx: 5 centered status badges (CI, Docker pulls, Arch, Release, License), 10 feature breakdown items, `docker run` and `docker compose` one-liners, setup token retrieval guide, ASCII architecture diagram & tech table, 22-variable config reference. | M3 | R5, survey_deploy |
 | 9 | Requirement-Driven Verification & Audit | Opaque-box verification across all features and tiers followed by independent forensic integrity audit. | M4 | AC, orchestrator |
 
@@ -91,8 +91,8 @@ Every feature identified during survey is inventoried below with its milestone a
 - Service name: `orbit`.
 - Image: `moresonsun/orbit:latest`.
 - Restart policy: `unless-stopped`.
-- Ports: `"8080:8080"`.
-- Environment: `ORBIT_LISTEN=:8080`, `ORBIT_DATA_DIR=/data`, `ORBIT_TRUST_PROXY=true`.
+- Ports: `"8787:8787"`.
+- Environment: `ORBIT_LISTEN=:8787`, `ORBIT_DATA_DIR=/data`, `ORBIT_TRUST_PROXY=true`.
 - Volumes:
   - `/var/run/docker.sock:/var/run/docker.sock`
   - `orbit_data:/data`

@@ -8,10 +8,18 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	// DefaultPort is the standardized project-wide default HTTP port for Orbit.
+	DefaultPort = "8787"
+	// DefaultListenAddr is the standardized project-wide default listen address.
+	DefaultListenAddr = ":" + DefaultPort
 )
 
 type Config struct {
@@ -52,8 +60,17 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
+	listenAddr, _, err := ResolveListenConfig(
+		os.Getenv("ORBIT_LISTEN"),
+		os.Getenv("ORBIT_PORT"),
+		os.Getenv("PORT"),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("configuration error: %w", err)
+	}
+
 	c := &Config{
-		Listen:            env("ORBIT_LISTEN", ":8787"),
+		Listen:            listenAddr,
 		DataDir:           env("ORBIT_DATA_DIR", "/data"),
 		DockerHost:        env("ORBIT_DOCKER_HOST", env("DOCKER_HOST", "unix:///var/run/docker.sock")),
 		HostProc:          env("ORBIT_HOST_PROC", "/host/proc"),
@@ -78,7 +95,6 @@ func Load() (*Config, error) {
 			c.TrustedOrigins = append(c.TrustedOrigins, strings.ToLower(o))
 		}
 	}
-	var err error
 	if c.SessionTTL, err = envDuration("ORBIT_SESSION_TTL", 7*24*time.Hour); err != nil {
 		return nil, err
 	}
@@ -143,4 +159,183 @@ func envDuration(k string, def time.Duration) (time.Duration, error) {
 	}
 	return d, nil
 }
+
+// ParseListenAddr parses and normalizes a listen address string into host and port components.
+// It handles bare ports ("8787"), leading colons (":8787"), host:port pairs ("0.0.0.0:8787",
+// "127.0.0.1:8787"), bracketed IPv6 ("[::]:8787"), host-only strings, and cleans whitespace
+// or trailing slashes.
+func ParseListenAddr(s string) (host string, port string, err error) {
+	clean := strings.Trim(s, " \t\r\n/")
+	if clean == "" {
+		return "", "", nil
+	}
+
+	// Reject URL schemes (e.g. "http://localhost:8787")
+	if strings.Contains(clean, "://") {
+		return "", "", fmt.Errorf("invalid listen address format %q: URLs with scheme (e.g. http://) are not allowed", s)
+	}
+
+	// 1. Bare numeric port (e.g. "8787")
+	if num, err := strconv.Atoi(clean); err == nil {
+		if num < 1 || num > 65535 {
+			return "", "", fmt.Errorf("port %d out of range [1-65535]", num)
+		}
+		return "", strconv.Itoa(num), nil
+	}
+
+	// 2. Colon port (e.g. ":8787")
+	if strings.HasPrefix(clean, ":") && !strings.HasPrefix(clean, "::") {
+		candidate := strings.TrimPrefix(clean, ":")
+		num, err := strconv.Atoi(candidate)
+		if err != nil || num < 1 || num > 65535 {
+			return "", "", fmt.Errorf("invalid port in listen address %q", clean)
+		}
+		return "", strconv.Itoa(num), nil
+	}
+
+	// 3. Host:Port (e.g. "0.0.0.0:8787", "127.0.0.1:8787", "[::]:8787")
+	h, p, splitErr := net.SplitHostPort(clean)
+	if splitErr == nil {
+		num, err := strconv.Atoi(p)
+		if err != nil || num < 1 || num > 65535 {
+			return "", "", fmt.Errorf("invalid port in listen address %q: %v", clean, err)
+		}
+		if strings.Contains(h, ":") {
+			ip := net.ParseIP(h)
+			if ip == nil || ip.To4() != nil {
+				return "", "", fmt.Errorf("invalid IPv6 address in listen address %q", clean)
+			}
+			if !strings.HasPrefix(h, "[") {
+				h = "[" + h + "]"
+			}
+		}
+		return h, strconv.Itoa(num), nil
+	}
+
+	// 4. Bracketed IPv6 fallback (e.g. "[::]:8787" if SplitHostPort had issues)
+	if lastColon := strings.LastIndex(clean, ":"); lastColon != -1 {
+		candidatePort := strings.Trim(clean[lastColon+1:], " \t\r\n/]")
+		candidateHost := strings.Trim(clean[:lastColon], " \t\r\n/[]")
+		if num, err := strconv.Atoi(candidatePort); err == nil && num >= 1 && num <= 65535 {
+			ip := net.ParseIP(candidateHost)
+			if ip != nil && ip.To4() == nil {
+				return "[" + candidateHost + "]", strconv.Itoa(num), nil
+			}
+		}
+	}
+
+	// 5. Hostname or IP without port (e.g. "0.0.0.0", "127.0.0.1", "localhost")
+	if !strings.Contains(clean, ":") {
+		if net.ParseIP(clean) != nil || clean == "localhost" {
+			return clean, "", nil
+		}
+	}
+
+	return "", "", fmt.Errorf("invalid listen address format: %q", s)
+}
+
+func parsePortString(s string) (string, error) {
+	clean := strings.Trim(s, " \t\r\n/")
+	if clean == "" {
+		return "", nil
+	}
+	clean = strings.TrimPrefix(clean, ":")
+	num, err := strconv.Atoi(clean)
+	if err != nil || num < 1 || num > 65535 {
+		return "", fmt.Errorf("invalid port value %q: must be integer between 1 and 65535", s)
+	}
+	return strconv.Itoa(num), nil
+}
+
+// ResolveListenConfig resolves the normalized listen address and port number.
+// Precedence:
+//   1. ORBIT_LISTEN if explicitly specified with a custom address/port (non-default and non-empty)
+//   2. ORBIT_PORT if set (normalized)
+//   3. PORT if set (normalized)
+//   4. Default ":8787"
+// Ensures net.Listen("tcp", addr) will not fail with "missing port in address".
+func ResolveListenConfig(orbitListen, orbitPort, port string) (listenAddr string, portNum string, err error) {
+	var host string
+	var resolvedPort string
+
+	cleanListen := strings.Trim(orbitListen, " \t\r\n/")
+	if cleanListen != "" {
+		h, p, parseErr := ParseListenAddr(cleanListen)
+		if parseErr != nil {
+			return "", "", parseErr
+		}
+		host = h
+		if p != "" && p != DefaultPort {
+			resolvedPort = p
+		} else if p == DefaultPort {
+			resolvedPort = DefaultPort
+		}
+	}
+
+	// ORBIT_PORT override (highest priority for port when ORBIT_LISTEN is default or only sets host)
+	cleanOP := strings.Trim(orbitPort, " \t\r\n/")
+	if cleanOP != "" {
+		op, err := parsePortString(cleanOP)
+		if err != nil {
+			return "", "", fmt.Errorf("ORBIT_PORT: %w", err)
+		}
+		if resolvedPort == "" || resolvedPort == DefaultPort {
+			resolvedPort = op
+		}
+	}
+
+	// PORT override
+	cleanP := strings.Trim(port, " \t\r\n/")
+	if cleanP != "" {
+		p, err := parsePortString(cleanP)
+		if err != nil {
+			return "", "", fmt.Errorf("PORT: %w", err)
+		}
+		if cleanOP == "" && (resolvedPort == "" || resolvedPort == DefaultPort) {
+			resolvedPort = p
+		}
+	}
+
+	if resolvedPort == "" {
+		resolvedPort = DefaultPort
+	}
+
+	if host == "" {
+		listenAddr = ":" + resolvedPort
+	} else {
+		listenAddr = host + ":" + resolvedPort
+	}
+
+	return listenAddr, resolvedPort, nil
+}
+
+// NormalizeListenAddr normalizes listen addresses across ORBIT_LISTEN, ORBIT_PORT, PORT
+// into a net.Listen-compatible address. Returns ":8787" on unparseable inputs.
+func NormalizeListenAddr(orbitListen, orbitPort, port string) string {
+	addr, _, err := ResolveListenConfig(orbitListen, orbitPort, port)
+	if err != nil {
+		return DefaultListenAddr
+	}
+	return addr
+}
+
+// ResolvePort returns the resolved numeric port string (e.g. "8787").
+func ResolvePort(orbitListen, orbitPort, port string) string {
+	_, p, err := ResolveListenConfig(orbitListen, orbitPort, port)
+	if err != nil {
+		return DefaultPort
+	}
+	return p
+}
+
+// ResolveHealthcheckPort resolves the port to use for healthcheck probes from environment variables.
+func ResolveHealthcheckPort() string {
+	return ResolvePort(os.Getenv("ORBIT_LISTEN"), os.Getenv("ORBIT_PORT"), os.Getenv("PORT"))
+}
+
+// ResolveHealthcheckURL returns the loopback healthcheck target URL targeting /api/system/health.
+func ResolveHealthcheckURL() string {
+	return fmt.Sprintf("http://127.0.0.1:%s/api/system/health", ResolveHealthcheckPort())
+}
+
 

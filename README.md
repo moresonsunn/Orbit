@@ -36,8 +36,8 @@ Orbit is a modern, standalone Docker infrastructure management and real-time mon
 docker run -d \
   --name orbit \
   --restart unless-stopped \
-  -p 8080:8080 \
-  -e ORBIT_LISTEN=:8080 \
+  -p 8787:8787 \
+  -e ORBIT_LISTEN=:8787 \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v orbit_data:/data \
   -v /proc:/host/proc:ro \
@@ -77,7 +77,7 @@ See the complete [CasaOS & Linux Installation Guide](docs/INSTALLATION.md) for f
    ```bash
    docker logs orbit | grep "SETUP TOKEN"
    ```
-2. Open `http://<your-server-ip>:8080` in your browser.
+2. Open `http://<your-server-ip>:8787` in your browser.
 3. Paste the setup token and create your administrator credentials. The token is permanently invalidated once the admin user is created.
 
 ## Architecture
@@ -129,7 +129,7 @@ Orbit is configured via environment variables in `docker-compose.yml` or your `.
 
 | Variable | Default | Description |
 |---|---|---|
-| `ORBIT_LISTEN` | `:8787` (or `:8080`) | Listen address and port for web UI and API. |
+| `ORBIT_LISTEN` | `:8787` | Listen address and port for web UI and API. |
 | `ORBIT_DATA_DIR` | `/data` | Path inside container where SQLite database and configs are stored. |
 | `ORBIT_DOCKER_HOST` | `unix:///var/run/docker.sock` | Docker Engine API endpoint (Unix socket or TCP socket proxy). |
 | `ORBIT_LOG_LEVEL` | `info` | Logging verbosity (`debug`, `info`, `warn`, `error`). |

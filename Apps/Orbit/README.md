@@ -26,9 +26,9 @@ You can install Orbit directly on your CasaOS instance using the built-in Custom
 3. In the top right corner of the App Store, click **Custom Install**.
 4. Click the **Import** button in the upper right corner of the modal.
 5. Paste the contents of `Apps/Orbit/docker-compose.yml` into the text box (or drag and drop the file).
-6. Click **Submit**. CasaOS will parse the configuration, set the container title to **Orbit**, map port **8080**, and configure persistent storage under `/DATA/AppData/orbit/data`.
+6. Click **Submit**. CasaOS will parse the configuration, set the container title to **Orbit**, map port **8787**, and configure persistent storage under `/DATA/AppData/orbit/data`.
 7. Click **Install**.
-8. Once installed, an **Orbit** launcher icon will appear on your CasaOS desktop. Click it to access Orbit at `http://<casaos-ip>:8080`.
+8. Once installed, an **Orbit** launcher icon will appear on your CasaOS desktop. Click it to access Orbit at `http://<casaos-ip>:8787`.
 
 ---
 
@@ -57,7 +57,7 @@ For security, Orbit generates **no default credentials**. On initial launch:
    ```bash
    docker logs orbit | grep "SETUP TOKEN"
    ```
-2. Open `http://<casaos-ip>:8080` in your web browser.
+2. Open `http://<casaos-ip>:8787` in your web browser.
 3. Paste the setup token and create your initial administrator username and password.
 4. Once completed, the setup token is permanently invalidated.
 

@@ -7,9 +7,9 @@ services:
     container_name: orbit
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8787:8787"
     environment:
-      - ORBIT_LISTEN=:8080
+      - ORBIT_LISTEN=:8787
       - ORBIT_DATA_DIR=/data
       - ORBIT_ENABLE_ACTIONS=${ORBIT_ENABLE_ACTIONS:-false}
       - ORBIT_ENABLE_DESTRUCTIVE=${ORBIT_ENABLE_DESTRUCTIVE:-false}

@@ -22,14 +22,21 @@ func SetupRouter(server *Server, hub *realtime.Hub, spaFS fs.FS) http.Handler {
 	r.Use(mw.CORS)
 	r.Use(mw.Authenticate)
 
+	healthHandler := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	}
+
+	// Top-level health check routes
+	r.Get("/api/system/health", healthHandler)
+	r.Get("/health", healthHandler)
+
 	// API routes
 	r.Route("/api/v1", func(api chi.Router) {
 		// Health check
-		api.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{"status":"ok"}`))
-		})
+		api.Get("/health", healthHandler)
+		api.Get("/system/health", healthHandler)
 
 		// WebSocket endpoint (handles its own auth and origin checks)
 		api.Get("/ws", hub.HandleWebSocket)

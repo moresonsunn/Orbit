@@ -228,18 +228,18 @@ class TestTier3CasaOSMetadataSchema(unittest.TestCase):
         )
 
     def test_xcasaos_port_map_is_quoted_string(self):
-        """Verify x-casaos.port_map is strictly a string (not an integer) with value '8080'."""
+        """Verify x-casaos.port_map is strictly a string (not an integer) with value '8787'."""
         port_map = self.xcasaos.get("port_map")
         self.assertIsNotNone(port_map, "Missing 'x-casaos.port_map'.")
         self.assertIsInstance(
             port_map,
             str,
-            f"x-casaos.port_map MUST be a quoted string (e.g. \"8080\"), got {type(port_map).__name__}: {port_map}",
+            f"x-casaos.port_map MUST be a quoted string (e.g. \"8787\"), got {type(port_map).__name__}: {port_map}",
         )
         self.assertEqual(
             port_map,
-            "8080",
-            f"Expected x-casaos.port_map to be '8080', got '{port_map}'",
+            "8787",
+            f"Expected x-casaos.port_map to be '8787', got '{port_map}'",
         )
 
     def test_xcasaos_scheme_and_index(self):
@@ -340,27 +340,29 @@ class TestTier3CasaOSMetadataSchema(unittest.TestCase):
             f"x-casaos.icon must end with .svg or .png, got: {icon_url}",
         )
 
-    def test_orbit_port_8080_mapping(self):
-        """Verify service port mapping binds external port 8080 to container 8080."""
+    def test_orbit_port_8787_mapping(self):
+        """Verify service port mapping binds external port 8787 to container 8787."""
         orbit_svc = self.compose_data.get("services", {}).get("orbit", {})
         ports = orbit_svc.get("ports", [])
-        port_8080_mapped = False
+        port_8787_mapped = False
         for p in ports:
             if isinstance(p, str):
                 parts = p.split(":")
-                if len(parts) >= 2 and parts[-1] == "8080" and parts[-2] == "8080":
-                    port_8080_mapped = True
+                if len(parts) >= 2 and parts[-1] == "8787" and parts[-2] == "8787":
+                    port_8787_mapped = True
                     break
             elif isinstance(p, dict):
                 target = str(p.get("target", ""))
                 published = str(p.get("published", ""))
-                if target == "8080" and published == "8080":
-                    port_8080_mapped = True
+                if target == "8787" and published == "8787":
+                    port_8787_mapped = True
                     break
         self.assertTrue(
-            port_8080_mapped,
-            f"Orbit service must map host port 8080 to container port 8080. Found ports: {ports}",
+            port_8787_mapped,
+            f"Orbit service must map host port 8787 to container port 8787. Found ports: {ports}",
         )
+
+    test_orbit_port_8080_mapping = test_orbit_port_8787_mapping
 
     def test_orbit_docker_sock_mount(self):
         """Verify /var/run/docker.sock is mapped to /var/run/docker.sock."""

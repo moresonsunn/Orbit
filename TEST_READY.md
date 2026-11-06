@@ -100,7 +100,7 @@ python tests/validate_casaos.py
 | **Tier 3** | `test_xcasaos_block_exists` | Verify root `x-casaos` extension metadata mapping is present | **PASS** |
 | **Tier 3** | `test_xcasaos_id_reverse_domain` | Verify `x-casaos.id` is `dev.orbit.orbit` matching reverse-domain regex | **PASS** |
 | **Tier 3** | `test_xcasaos_main_service` | Verify `x-casaos.main` is `"orbit"` and matches an active service | **PASS** |
-| **Tier 3** | `test_xcasaos_port_map_is_quoted_string` | Verify `x-casaos.port_map` is strictly a string `"8080"` (not int) | **PASS** |
+| **Tier 3** | `test_xcasaos_port_map_is_quoted_string` | Verify `x-casaos.port_map` is strictly a string `"8787"` (not int) | **PASS** |
 | **Tier 3** | `test_xcasaos_scheme_and_index` | Verify `x-casaos.scheme` is `"http"` and `x-casaos.index` is `"/"` | **PASS** |
 | **Tier 3** | `test_xcasaos_category_canonical` | Verify `x-casaos.category` is `"Developer"` (canonical CasaOS category) | **PASS** |
 | **Tier 3** | `test_xcasaos_architectures` | Verify `x-casaos.architectures` contains `["amd64", "arm64"]` | **PASS** |
@@ -110,7 +110,7 @@ python tests/validate_casaos.py
 | **Tier 3** | `test_xcasaos_attribution` | Verify `developer` and `author` attribution metadata are defined | **PASS** |
 | **Tier 3** | `test_xcasaos_version_semver` | Verify `version` conforms to SemVer format if present | **PASS** |
 | **Tier 3** | `test_xcasaos_icon_url_valid` | Verify `x-casaos.icon` points to a valid HTTPS `.png` or `.svg` asset | **PASS** |
-| **Tier 3** | `test_orbit_port_8080_mapping` | Verify external port 8080 is published to container port 8080 | **PASS** |
+| **Tier 3** | `test_orbit_port_8787_mapping` | Verify external port 8787 is published to container port 8787 | **PASS** |
 | **Tier 3** | `test_orbit_docker_sock_mount` | Verify `/var/run/docker.sock` is mapped to `/var/run/docker.sock` | **PASS** |
 | **Tier 3** | `test_orbit_data_volume_persistence` | Verify persistent storage (`/DATA/AppData/$AppID/data`) maps to `/data` | **PASS** |
 | **Tier 3** | `test_service_level_xcasaos_annotations` | Verify service `x-casaos` annotations for ports and volume descriptions | **PASS** |
@@ -207,7 +207,7 @@ tests/test_casaos_package.py::TestTier2DockerComposeSyntax::test_orbit_service_i
 tests/test_casaos_package.py::TestTier2DockerComposeSyntax::test_services_section_contains_orbit PASSED [ 53%]
 tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_orbit_data_volume_persistence PASSED [ 55%]
 tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_orbit_docker_sock_mount PASSED [ 57%]
-tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_orbit_port_8080_mapping PASSED [ 59%]
+tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_orbit_port_8787_mapping PASSED [ 59%]
 tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_service_level_xcasaos_annotations PASSED [ 61%]
 tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_xcasaos_architectures PASSED [ 63%]
 tests/test_casaos_package.py::TestTier3CasaOSMetadataSchema::test_xcasaos_attribution PASSED [ 65%]
