@@ -20,7 +20,10 @@ import {
   Check,
   Eye,
   EyeOff,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
+import { api } from '../lib/api';
 import { MetricCard } from '../components/common/MetricCard';
 import { StatusBadge } from '../components/common/StatusBadge';
 import { Container, HostMetrics, GPUTelemetry, SystemInfoResponse } from '../types';
@@ -57,6 +60,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showCores, setShowCores] = useState(false);
   const [prefs, setPrefs] = useState<DashboardPreferences>(loadDashboardPrefs);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [retryingDocker, setRetryingDocker] = useState(false);
+
+  const handleRetryDockerConnection = async () => {
+    setRetryingDocker(true);
+    try {
+      const updated = await api.getSystemInfo();
+      setSysInfo(updated);
+    } catch (err) {
+      console.error('Failed to query Docker system info:', err);
+    } finally {
+      setRetryingDocker(false);
+    }
+  };
 
   const updatePref = <K extends keyof DashboardPreferences>(key: K, value: DashboardPreferences[K]) => {
     setPrefs((prev) => {
@@ -172,6 +188,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Docker Engine Connection Status / Permission Warning Banner */}
+      {sysInfo && !sysInfo.dockerConnected && (
+        <div className="p-4 sm:p-5 rounded-xl bg-rose-950/30 border border-rose-800/60 shadow-lg text-rose-200 animate-in fade-in duration-200">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-rose-900/40 border border-rose-800/50 shrink-0 mt-0.5">
+                <AlertTriangle className="w-5 h-5 text-rose-400" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold text-rose-100">
+                    Docker Engine nicht erreichbar — Zugriff verweigert oder Dienst inaktiv
+                  </h3>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-rose-900/60 border border-rose-700/60 text-rose-300">
+                    Verbindung getrennt
+                  </span>
+                </div>
+                <p className="text-xs text-rose-300/90 leading-relaxed max-w-3xl">
+                  Orbit kann keine Verbindung zum Docker-Daemon über den Socket <code className="px-1 py-0.5 rounded bg-black/40 font-mono text-[11px] text-rose-200">/var/run/docker.sock</code> herstellen.
+                  Auf Linux- und CasaOS-Hosts tritt dies auf, wenn der Container ohne ausreichende Berechtigungen ausgeführt wird oder der Socket nicht gemountet ist.
+                  Stellen Sie sicher, dass in Docker Compose <code className="px-1 py-0.5 rounded bg-black/40 font-mono text-[11px] text-rose-200">user: "0:0"</code> konfiguriert ist und der Socket <code className="px-1 py-0.5 rounded bg-black/40 font-mono text-[11px] text-rose-200">/var/run/docker.sock:/var/run/docker.sock</code> gemountet wurde.
+                </p>
+                {sysInfo.dockerError && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-black/50 border border-rose-900/50 font-mono text-[11px] text-rose-300 break-all select-all">
+                    <span className="text-rose-400 font-semibold mr-1.5">Daemon-Fehler:</span>
+                    {sysInfo.dockerError}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button
+              onClick={handleRetryDockerConnection}
+              disabled={retryingDocker}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-medium bg-rose-900/50 hover:bg-rose-900/80 border border-rose-700/60 text-rose-100 transition-colors disabled:opacity-50 shrink-0 self-start sm:self-auto cursor-pointer"
+              title="Docker-Verbindung erneut prüfen"
+            >
+              <RefreshCw className={cn('w-3.5 h-3.5', retryingDocker && 'animate-spin')} />
+              <span>{retryingDocker ? 'Prüfe...' : 'Verbindung prüfen'}</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Upper Information Grid */}
       {prefs.showSummary && (
@@ -313,7 +373,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Docker Status */}
           {prefs.showDockerOverview && (
             <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
-              <span className="text-xs font-medium text-neutral-400 block mb-2">Docker Engine</span>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-neutral-400">Docker Engine</span>
+                {sysInfo && !sysInfo.dockerConnected && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                    Getrennt
+                  </span>
+                )}
+              </div>
               <div className="grid grid-cols-3 gap-2 mt-2 text-center font-mono">
                 <div className="bg-[#121212] p-2 rounded border border-[#242424]">
                   <span className="text-[11px] text-neutral-500 block font-normal font-sans">Laufend</span>
@@ -535,7 +602,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 {containers.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-neutral-500 font-normal">
-                      Keine Container auf diesem Server gefunden.
+                      {sysInfo && !sysInfo.dockerConnected
+                        ? 'Keine Container verfügbar — Docker-Daemon nicht erreichbar oder Verbindung getrennt.'
+                        : 'Keine Container auf diesem Server gefunden.'}
                     </td>
                   </tr>
                 ) : (

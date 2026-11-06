@@ -62,7 +62,5 @@ EXPOSE 8787
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
     CMD ["/app/orbit", "-healthcheck"]
 
-USER orbit
-
 ENTRYPOINT ["/app/orbit"]
 
