@@ -2,7 +2,7 @@ name: orbit
 
 services:
   orbit:
-    image: moresonsunn/orbit:latest
+    image: moresonsun/orbit:latest
     container_name: orbit
     restart: unless-stopped
     ports:
@@ -27,22 +27,28 @@ services:
         - container: "8080"
           description:
             en_US: "Orbit Web UI and API Port"
+            de_DE: "Orbit Web-Oberfläche und API-Port"
       volumes:
         - container: /data
           description:
             en_US: "Orbit persistent SQLite database and application data"
+            de_DE: "Orbit persistente SQLite-Datenbank und Anwendungsdaten"
         - container: /var/run/docker.sock
           description:
             en_US: "Host Docker daemon socket for container management and monitoring"
+            de_DE: "Host Docker-Daemon-Socket für Container-Verwaltung und Monitoring"
         - container: /host/proc
           description:
             en_US: "Host /proc filesystem for real-time CPU and memory metrics"
+            de_DE: "Host /proc Dateisystem für Echtzeit-CPU- und Speichermetriken"
         - container: /host/sys
           description:
             en_US: "Host /sys filesystem for kernel and hardware telemetry"
+            de_DE: "Host /sys Dateisystem für Kernel- und Hardware-Telemetrie"
         - container: /host/etc/os-release
           description:
             en_US: "Host operating system release identification"
+            de_DE: "Host-Betriebssystem-Identifikation"
 
 x-casaos:
   id: dev.orbit.orbit
@@ -56,11 +62,14 @@ x-casaos:
     - arm64
   title:
     en_US: "Orbit"
+    de_DE: "Orbit"
   tagline:
     en_US: "Lightweight Docker Container Management & Monitoring"
+    de_DE: "Leichtgewichtiges Docker Container-Management & Monitoring"
   description:
     en_US: "Orbit is an ultra-fast, self-hosted Docker infrastructure, management and real-time monitoring platform. Built with Go and modern web technologies, Orbit delivers instantaneous visibility into Docker containers, network flows, IPAM subnets, host telemetry, and container lifecycle operations through modern WebSocket streaming."
-  developer: moresonsunn
+    de_DE: "Orbit ist eine ultraschnelle, selbstgehostete Docker-Infrastruktur-, Management- und Echtzeit-Monitoring-Plattform. Entwickelt mit Go und modernen Web-Technologien, bietet Orbit sofortige Einblicke in Docker-Container, Network Flows, IPAM-Subnetze, Host-Telemetrie und Container-Lifecycle-Operationen per WebSocket-Streaming."
+  developer: moresonsun
   author: Orbit Team
   icon: https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/icon.png
   thumbnail: https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/icon.png

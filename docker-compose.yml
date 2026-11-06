@@ -3,7 +3,7 @@
 
 services:
   orbit:
-    image: moresonsunn/orbit:latest
+    image: moresonsun/orbit:latest
     build:
       context: .
       dockerfile: Dockerfile

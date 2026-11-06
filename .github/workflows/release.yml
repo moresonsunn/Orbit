@@ -37,7 +37,8 @@ jobs:
             ### Orbit Release ${{ steps.meta.outputs.tag }}
 
             **Docker Images:**
-            - `moresonsunn/orbit:${{ steps.meta.outputs.tag }}`
+            - `moresonsun/orbit:${{ steps.meta.outputs.tag }}`
+            - `moresonsun/orbit:latest`
             - `ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.tag }}`
             - `ghcr.io/${{ github.repository }}:latest`
 

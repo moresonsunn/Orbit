@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://github.com/moresonsunn/orbit/actions/workflows/ci.yml"><img src="https://github.com/moresonsunn/orbit/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://hub.docker.com/r/moresonsunn/orbit"><img src="https://img.shields.io/docker/pulls/moresonsunn/orbit" alt="Docker Pulls"></a>
+  <a href="https://hub.docker.com/r/moresonsun/orbit"><img src="https://img.shields.io/docker/pulls/moresonsun/orbit" alt="Docker Pulls"></a>
   <img src="https://img.shields.io/badge/arch-amd64%20%7C%20arm64-blue" alt="Architecture">
   <a href="https://github.com/moresonsunn/orbit/releases"><img src="https://img.shields.io/github/v/release/moresonsunn/orbit?color=brightgreen" alt="Release"></a>
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
@@ -43,7 +43,7 @@ docker run -d \
   -v /proc:/host/proc:ro \
   -v /sys:/host/sys:ro \
   -v /etc/os-release:/host/etc/os-release:ro \
-  moresonsunn/orbit:latest
+  moresonsun/orbit:latest
 ```
 
 ### One-Line Docker Compose

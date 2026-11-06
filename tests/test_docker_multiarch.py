@@ -374,6 +374,13 @@ class TestTier4DockerBuildxDryRun(unittest.TestCase):
         docker_bin = shutil.which("docker")
         if not docker_bin:
             raise unittest.SkipTest("Docker CLI not found in PATH.")
+        # Check if Docker daemon is running and reachable
+        try:
+            check = subprocess.run([docker_bin, "info"], capture_output=True, timeout=5)
+            if check.returncode != 0:
+                raise unittest.SkipTest(f"Docker daemon is not running: {check.stderr.decode('utf-8', errors='ignore')[:100]}")
+        except Exception as e:
+            raise unittest.SkipTest(f"Cannot connect to Docker daemon: {e}")
         cls.docker_bin = docker_bin
 
     def test_docker_buildx_check_syntax(self):

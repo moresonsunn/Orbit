@@ -103,33 +103,29 @@ class SummaryTestResult(unittest.TextTestResult):
             self.tier_stats[key] = {"run": 0, "pass": 0, "fail": 0, "error": 0, "skip": 0}
         self.tier_stats[key]["run"] += 1
 
+    def _record(self, test, stat_key: str):
+        test_str = f"{test.__class__.__name__} {getattr(test, 'description', '')} {str(test)}"
+        tier = self._get_tier(test_str)
+        suite_name = self._get_suite(test)
+        key = (suite_name, tier if tier in (1, 2, 3, 4, 5) else 1)
+        if key in self.tier_stats:
+            self.tier_stats[key][stat_key] += 1
+
     def addSuccess(self, test):
         super().addSuccess(test)
-        cls_name = test.__class__.__name__
-        tier = self._get_tier(cls_name)
-        suite_name = self._get_suite(test)
-        self.tier_stats[(suite_name, tier)]["pass"] += 1
+        self._record(test, "pass")
 
     def addFailure(self, test, err):
         super().addFailure(test, err)
-        cls_name = test.__class__.__name__
-        tier = self._get_tier(cls_name)
-        suite_name = self._get_suite(test)
-        self.tier_stats[(suite_name, tier)]["fail"] += 1
+        self._record(test, "fail")
 
     def addError(self, test, err):
         super().addError(test, err)
-        cls_name = test.__class__.__name__
-        tier = self._get_tier(cls_name)
-        suite_name = self._get_suite(test)
-        self.tier_stats[(suite_name, tier)]["error"] += 1
+        self._record(test, "error")
 
     def addSkip(self, test, reason):
         super().addSkip(test, reason)
-        cls_name = test.__class__.__name__
-        tier = self._get_tier(cls_name)
-        suite_name = self._get_suite(test)
-        self.tier_stats[(suite_name, tier)]["skip"] += 1
+        self._record(test, "skip")
 
     @staticmethod
     def _get_tier(cls_name: str) -> int:

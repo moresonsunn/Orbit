@@ -34,7 +34,7 @@ name: orbit
 
 services:
   orbit:
-    image: moresonsunn/orbit:latest
+    image: moresonsun/orbit:latest
     container_name: orbit
     restart: unless-stopped
     ports:
@@ -142,7 +142,7 @@ cd /DATA/AppData/orbit
 cat << 'EOF' > docker-compose.yml
 services:
   orbit:
-    image: moresonsunn/orbit:latest
+    image: moresonsun/orbit:latest
     container_name: orbit
     restart: unless-stopped
     ports:

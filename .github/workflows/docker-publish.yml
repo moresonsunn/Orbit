@@ -42,13 +42,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Docker Hub
-        if: env.DOCKER_USERNAME != ''
-        uses: docker/login-action@v3
-        with:
-          username: ${{ env.DOCKER_USERNAME }}
-          password: ${{ env.DOCKER_PASSWORD }}
-
       - name: Log in to GitHub Container Registry (GHCR)
         uses: docker/login-action@v3
         with:
@@ -56,24 +49,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Configure Image Targets
-        id: targets
+      - name: Log in to Docker Hub
+        if: env.DOCKER_USERNAME != ''
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+
+      - name: Resolve Docker Hub User
+        id: dockerhub-config
         shell: bash
         run: |
-          IMAGES="ghcr.io/${{ github.repository }}"
-          if [ -n "$DOCKER_USERNAME" ]; then
-            IMAGES="${IMAGES}
-          moresonsunn/orbit"
-          fi
-          echo "images<<EOF" >> $GITHUB_OUTPUT
-          echo "$IMAGES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          DOCKER_USER=$(echo "${DOCKER_USERNAME:-moresonsun}" | tr '[:upper:]' '[:lower:]' | xargs)
+          echo "docker_user=$DOCKER_USER" >> $GITHUB_OUTPUT
+          echo "docker_image=${DOCKER_USER}/orbit" >> $GITHUB_OUTPUT
 
-      - name: Extract Docker metadata (tags & labels)
-        id: meta
+      # ----------------------------------------------------------------------
+      # 1. GHCR Publish (Guaranteed to succeed via GITHUB_TOKEN)
+      # ----------------------------------------------------------------------
+      - name: Extract GHCR metadata (tags & labels)
+        id: meta-ghcr
         uses: docker/metadata-action@v5
         with:
-          images: ${{ steps.targets.outputs.images }}
+          images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v') }}
             type=ref,event=branch
@@ -85,17 +83,52 @@ jobs:
           labels: |
             org.opencontainers.image.title=Orbit
             org.opencontainers.image.description=Self-hosted Docker Infrastructure Management & Real-Time Monitoring Platform
-            org.opencontainers.image.vendor=moresonsunn
+            org.opencontainers.image.vendor=${{ github.repository_owner }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
 
-      - name: Build and push multi-arch Docker image
+      - name: Build and push multi-arch to GHCR
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.meta-ghcr.outputs.tags }}
+          labels: ${{ steps.meta-ghcr.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # ----------------------------------------------------------------------
+      # 2. Docker Hub Publish (Reuses cached layers instantly)
+      # ----------------------------------------------------------------------
+      - name: Extract Docker Hub metadata (tags & labels)
+        id: meta-dockerhub
+        if: env.DOCKER_USERNAME != ''
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.dockerhub-config.outputs.docker_image }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/v') }}
+            type=ref,event=branch
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix=,format=short
+            type=raw,value=${{ inputs.version }},enable=${{ inputs.version != '' }}
+          labels: |
+            org.opencontainers.image.title=Orbit
+            org.opencontainers.image.description=Self-hosted Docker Infrastructure Management & Real-Time Monitoring Platform
+            org.opencontainers.image.vendor=${{ steps.dockerhub-config.outputs.docker_user }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+      - name: Push multi-arch to Docker Hub
+        if: env.DOCKER_USERNAME != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta-dockerhub.outputs.tags }}
+          labels: ${{ steps.meta-dockerhub.outputs.labels }}
+          cache-from: type=gha
