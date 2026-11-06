@@ -22,6 +22,7 @@ jobs:
   build-and-push:
     name: Multi-Arch Build & Publish (amd64 / arm64)
     runs-on: ubuntu-latest
+    environment: DOCKERHUB_USERNAME
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME || secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN || secrets.DOCKER_TOKEN }}
