@@ -256,14 +256,40 @@ export interface SocketConnection {
   protocol: string;
   localIp: string;
   localPort: number;
+  localAddr?: string;
   remoteIp: string;
   remotePort: number;
+  remoteAddr?: string;
   state: string;
   containerId?: string;
   containerName?: string;
+  processName?: string;
   appProtocol?: string;
+  detectedProto?: string;
   classification: string;
   detectionMode: string;
+  securityLevel?: 'critical' | 'caution' | 'safe' | 'internal';
+  securityBadge?: string;
+  securityDesc?: string;
+}
+
+export interface ContainerTrafficMetric {
+  containerId: string;
+  containerName: string;
+  status?: string;
+  rxBps: number;
+  txBps: number;
+  rxBytes: number;
+  txBytes: number;
+  rxPps?: number;
+  txPps?: number;
+}
+
+export interface NetflowTotals {
+  totalRxBps: number;
+  totalTxBps: number;
+  activeConnections: number;
+  securityAlertsCount: number;
 }
 
 export interface ProtocolSummary {
@@ -281,8 +307,10 @@ export interface NetflowSnapshot {
     nodes: TopologyNode[];
     edges: TopologyEdge[];
   };
+  containerTraffic?: ContainerTrafficMetric[];
   connections: SocketConnection[];
   protocolStats: ProtocolSummary[];
+  totals?: NetflowTotals;
 }
 
 export interface DockerEvent {
@@ -368,23 +396,51 @@ export interface SystemInfoResponse {
   };
 }
 
+export interface SubnetDetails {
+  Subnet: string;
+  Gateway: string;
+  NetworkIP: string;
+  BroadcastIP: string;
+  UsableRange: string;
+  TotalIPs: number;
+  UsedIPs: number;
+  FreeIPs: number;
+  UtilizationPercent: number;
+}
+
+export interface NetworkContainerEndpoint {
+  Name: string;
+  EndpointID: string;
+  MacAddress: string;
+  IPv4Address: string;
+  IPv6Address: string;
+  State?: string;
+}
+
 export interface DockerNetwork {
   Name: string;
   Id: string;
-  Created: string;
+  Created?: string;
   Scope: string;
   Driver: string;
-  EnableIPv4: boolean;
-  EnableIPv6: boolean;
+  EnableIPv4?: boolean;
+  EnableIPv6?: boolean;
   Internal: boolean;
-  IPAM: {
-    Driver: string;
+  Attachable?: boolean;
+  Ingress?: boolean;
+  ConfigOnly?: boolean;
+  IPAM?: {
+    Driver?: string;
     Config?: Array<{
       Subnet?: string;
       Gateway?: string;
+      IPRange?: string;
     }>;
   };
-  Containers?: Record<string, any>;
+  SubnetDetails?: SubnetDetails;
+  Containers?: Record<string, NetworkContainerEndpoint>;
+  Options?: Record<string, string>;
+  Labels?: Record<string, string>;
 }
 
 export interface DockerImage {

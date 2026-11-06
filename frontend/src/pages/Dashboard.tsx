@@ -420,8 +420,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* Live Charts Section (Togglable) */}
       {prefs.showCharts && (
-        {/* CPU & RAM Live Chart */}
-        <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
+        <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* CPU & RAM Live Chart */}
+            <div className="p-4 rounded-lg bg-[#181818] border border-[#282828] shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-semibold text-white tracking-tight">CPU & RAM Verlauf (Echtzeit)</h3>
@@ -503,6 +505,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
       </div>
+    </>
+  )}
 
       {/* Active Containers (Direct Canvas Table, Tailscale style) */}
       <div className="pt-2">

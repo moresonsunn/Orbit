@@ -3,9 +3,11 @@ package netflow
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
+	"github.com/moby/moby/api/types/network"
 	"github.com/phili/orbit/internal/config"
 	"github.com/phili/orbit/internal/docker"
 	"github.com/phili/orbit/internal/model"
@@ -29,11 +31,23 @@ func NewBuilder(cfg *config.Config, inv *docker.Inventory, streamer *docker.Stat
 
 func (b *Builder) BuildSnapshot(ctx context.Context) NetflowSnapshot {
 	now := time.Now()
-	containers := b.inv.Containers()
-	networks, _ := b.inv.Networks(ctx, 30*time.Second)
+	var containers []docker.Container
+	var networks []network.Summary
 
-	var nodes []TopologyNode
-	var edges []TopologyEdge
+	if b.inv != nil {
+		containers = b.inv.Containers()
+		func() {
+			defer func() {
+				_ = recover()
+			}()
+			if nets, err := b.inv.Networks(ctx, 30*time.Second); err == nil {
+				networks = nets
+			}
+		}()
+	}
+
+	nodes := []TopologyNode{}
+	edges := []TopologyEdge{}
 
 	// 1. Host Node
 	hostNode := TopologyNode{
@@ -90,16 +104,56 @@ func (b *Builder) BuildSnapshot(ctx context.Context) NetflowSnapshot {
 		statsMap[st.ID] = st
 	}
 
+	traffic := []ContainerTrafficMetric{}
+	var totalRxBps float64
+	var totalTxBps float64
+
 	for _, c := range containers {
 		cNodeID := fmt.Sprintf("container-%s", c.ShortID)
 		st, hasStats := statsMap[c.ID]
 
 		rxGauge := model.NA(model.Unavailable, "no traffic metrics")
 		txGauge := model.NA(model.Unavailable, "no traffic metrics")
+		var rxBps, txBps, rxPps, txPps float64
+		var rxBytes, txBytes uint64
+
 		if hasStats {
 			rxGauge = st.NetRxBps
 			txGauge = st.NetTxBps
+			if st.NetRxBps.Value != nil {
+				rxBps = *st.NetRxBps.Value
+			}
+			if st.NetTxBps.Value != nil {
+				txBps = *st.NetTxBps.Value
+			}
+			if st.NetRxBytes.Value != nil {
+				rxBytes = uint64(*st.NetRxBytes.Value)
+			}
+			if st.NetTxBytes.Value != nil {
+				txBytes = uint64(*st.NetTxBytes.Value)
+			}
+			if st.NetRxPps.Value != nil {
+				rxPps = *st.NetRxPps.Value
+			}
+			if st.NetTxPps.Value != nil {
+				txPps = *st.NetTxPps.Value
+			}
 		}
+
+		totalRxBps += rxBps
+		totalTxBps += txBps
+
+		traffic = append(traffic, ContainerTrafficMetric{
+			ContainerID:   c.ID,
+			ContainerName: c.Name,
+			Status:        c.State,
+			RxBps:         rxBps,
+			TxBps:         txBps,
+			RxBytes:       rxBytes,
+			TxBytes:       txBytes,
+			RxPps:         rxPps,
+			TxPps:         txPps,
+		})
 
 		nodes = append(nodes, TopologyNode{
 			ID:     cNodeID,
@@ -142,6 +196,10 @@ func (b *Builder) BuildSnapshot(ctx context.Context) NetflowSnapshot {
 		}
 	}
 
+	sort.Slice(traffic, func(i, j int) bool {
+		return (traffic[i].RxBps + traffic[i].TxBps) > (traffic[j].RxBps + traffic[j].TxBps)
+	})
+
 	// 4. Read sockets and generate protocol statistics
 	conns := b.socketReader.ReadSockets()
 
@@ -174,21 +232,45 @@ func (b *Builder) BuildSnapshot(ctx context.Context) NetflowSnapshot {
 		}
 	}
 
-	var protocolStats []ProtocolSummary
+	protocolStats := []ProtocolSummary{}
 	for _, ps := range protoMap {
 		protocolStats = append(protocolStats, *ps)
 	}
 
+	if conns == nil {
+		conns = []SocketConnection{}
+	}
+
+	activeConns := 0
+	securityAlerts := 0
+	for _, conn := range conns {
+		if conn.State == "ESTABLISHED" || conn.State == "ACTIVE" {
+			activeConns++
+		}
+		if conn.SecurityLevel == "critical" || conn.SecurityLevel == "caution" {
+			securityAlerts++
+		}
+	}
+
+	totals := NetflowTotals{
+		TotalRxBps:          totalRxBps,
+		TotalTxBps:          totalTxBps,
+		ActiveConnections:   activeConns,
+		SecurityAlertsCount: securityAlerts,
+	}
+
 	return NetflowSnapshot{
-		Timestamp: now,
+		Timestamp:     now,
 		EBPFAvailable: false,
-		EBPFStatus: "Standard Socket-Inspektion aktiv (eBPF-Erweiterung optional)",
+		EBPFStatus:    "Standard Socket-Inspektion aktiv (eBPF-Erweiterung optional)",
 		Topology: Topology{
 			Timestamp: now,
 			Nodes:     nodes,
 			Edges:     edges,
 		},
-		Connections:   conns,
-		ProtocolStats: protocolStats,
+		ContainerTraffic: traffic,
+		Connections:      conns,
+		ProtocolStats:    protocolStats,
+		Totals:           totals,
 	}
 }

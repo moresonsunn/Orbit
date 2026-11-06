@@ -1,14 +1,19 @@
 package api
 
 import (
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/moby/moby/api/types/network"
 	"github.com/phili/orbit/internal/alerts"
 	"github.com/phili/orbit/internal/auth"
 	"github.com/phili/orbit/internal/config"
@@ -371,13 +376,203 @@ func (s *Server) HandleContainerTop(w http.ResponseWriter, r *http.Request) {
 
 // ---- Docker Resources Handlers ----
 
+// NetworkContainerEndpoint represents a container connected to a network with status details.
+type NetworkContainerEndpoint struct {
+	Name        string `json:"Name"`
+	EndpointID  string `json:"EndpointID"`
+	MacAddress  string `json:"MacAddress"`
+	IPv4Address string `json:"IPv4Address"`
+	IPv6Address string `json:"IPv6Address"`
+	State       string `json:"State,omitempty"`
+}
+
+// SubnetDetails contains IPAM capacity and allocation metrics.
+type SubnetDetails struct {
+	Subnet             string  `json:"Subnet"`
+	Gateway            string  `json:"Gateway"`
+	NetworkIP          string  `json:"NetworkIP"`
+	BroadcastIP        string  `json:"BroadcastIP"`
+	UsableRange        string  `json:"UsableRange"`
+	TotalIPs           int     `json:"TotalIPs"`
+	UsedIPs            int     `json:"UsedIPs"`
+	FreeIPs            int     `json:"FreeIPs"`
+	UtilizationPercent float64 `json:"UtilizationPercent"`
+}
+
+// EnrichedDockerNetwork delivers network metadata, IPAM calculations, and connected containers.
+// It embeds network.Summary for full backward compatibility with standard Docker network inspects.
+type EnrichedDockerNetwork struct {
+	network.Summary
+	SubnetDetails *SubnetDetails                      `json:"SubnetDetails,omitempty"`
+	Containers    map[string]NetworkContainerEndpoint `json:"Containers"`
+	Services      map[string]network.ServiceInfo      `json:"Services,omitempty"`
+	Status        *network.Status                     `json:"Status,omitempty"`
+}
+
+func calculateSubnetDetails(subnetStr, gatewayStr string, containers map[string]NetworkContainerEndpoint, status *network.Status) *SubnetDetails {
+	if subnetStr == "" {
+		return nil
+	}
+
+	_, ipnet, err := net.ParseCIDR(subnetStr)
+	if err != nil {
+		return nil
+	}
+
+	ip4 := ipnet.IP.To4()
+	if ip4 == nil {
+		return nil
+	}
+
+	ones, bits := ipnet.Mask.Size()
+	if bits != 32 {
+		return nil
+	}
+	hostBits := 32 - ones
+
+	networkIP := ip4.String()
+
+	broadcast := make(net.IP, 4)
+	for i := 0; i < 4; i++ {
+		broadcast[i] = ip4[i] | ^ipnet.Mask[i]
+	}
+	broadcastIP := broadcast.String()
+
+	netUint := binary.BigEndian.Uint32(ip4)
+	bcastUint := binary.BigEndian.Uint32(broadcast)
+
+	var usableRange string
+	if hostBits >= 2 {
+		firstUsable := make(net.IP, 4)
+		lastUsable := make(net.IP, 4)
+		binary.BigEndian.PutUint32(firstUsable, netUint+1)
+		binary.BigEndian.PutUint32(lastUsable, bcastUint-1)
+		usableRange = fmt.Sprintf("%s - %s", firstUsable.String(), lastUsable.String())
+	} else if hostBits == 1 {
+		usableRange = fmt.Sprintf("%s - %s", networkIP, broadcastIP)
+	} else {
+		usableRange = networkIP
+	}
+
+	totalIPs := 1 << hostBits
+
+	usedIPs := 0
+	freeIPs := 0
+
+	// Check if Docker status has runtime IPAM allocations
+	if status != nil && status.IPAM.Subnets != nil {
+		for pfx, subStatus := range status.IPAM.Subnets {
+			if pfx.String() == subnetStr {
+				if subStatus.IPsInUse > 0 || subStatus.DynamicIPsAvailable > 0 {
+					usedIPs = int(subStatus.IPsInUse)
+					freeIPs = int(subStatus.DynamicIPsAvailable)
+					if usedIPs+freeIPs > totalIPs {
+						totalIPs = usedIPs + freeIPs
+					}
+					break
+				}
+			}
+		}
+	}
+
+	// Fallback calculation from connected containers and gateway
+	if usedIPs == 0 {
+		count := 0
+		for _, c := range containers {
+			if c.IPv4Address != "" {
+				cIPStr := strings.Split(c.IPv4Address, "/")[0]
+				if parsed := net.ParseIP(cIPStr); parsed != nil && ipnet.Contains(parsed) {
+					count++
+				}
+			}
+		}
+		if gatewayStr != "" {
+			if gwIP := net.ParseIP(gatewayStr); gwIP != nil && ipnet.Contains(gwIP) {
+				count++
+			}
+		}
+		usedIPs = count
+		freeIPs = totalIPs - usedIPs
+		if freeIPs < 0 {
+			freeIPs = 0
+		}
+	}
+
+	utilPct := 0.0
+	if totalIPs > 0 {
+		utilPct = math.Round((float64(usedIPs)/float64(totalIPs)*100.0)*100) / 100
+	}
+
+	return &SubnetDetails{
+		Subnet:             subnetStr,
+		Gateway:            gatewayStr,
+		NetworkIP:          networkIP,
+		BroadcastIP:        broadcastIP,
+		UsableRange:        usableRange,
+		TotalIPs:           totalIPs,
+		UsedIPs:            usedIPs,
+		FreeIPs:            freeIPs,
+		UtilizationPercent: utilPct,
+	}
+}
+
 func (s *Server) HandleListNetworks(w http.ResponseWriter, r *http.Request) {
 	nets, err := s.inv.Networks(r.Context(), 10*time.Second)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, "Netzwerke konnten nicht geladen werden: "+err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, nets)
+
+	containers := s.inv.Containers()
+
+	var enriched []EnrichedDockerNetwork
+	for _, n := range nets {
+		netContainers := make(map[string]NetworkContainerEndpoint)
+
+		for _, c := range containers {
+			for _, cn := range c.Networks {
+				matches := cn.NetworkID == n.ID || cn.Name == n.Name
+				if !matches && len(n.ID) >= 12 && len(cn.NetworkID) >= 12 {
+					matches = strings.HasPrefix(cn.NetworkID, n.ID[:12]) || strings.HasPrefix(n.ID, cn.NetworkID[:12])
+				}
+				if matches {
+					ipv4 := cn.IPAddress
+					if ipv4 != "" && cn.PrefixLen > 0 {
+						ipv4 = fmt.Sprintf("%s/%d", cn.IPAddress, cn.PrefixLen)
+					}
+					netContainers[c.ID] = NetworkContainerEndpoint{
+						Name:        c.Name,
+						EndpointID:  cn.EndpointID,
+						MacAddress:  cn.MacAddress,
+						IPv4Address: ipv4,
+						IPv6Address: cn.IPv6,
+						State:       c.State,
+					}
+				}
+			}
+		}
+
+		var subnetDetails *SubnetDetails
+		for _, ipamCfg := range n.IPAM.Config {
+			if ipamCfg.Subnet.IsValid() {
+				subnetStr := ipamCfg.Subnet.String()
+				gatewayStr := ""
+				if ipamCfg.Gateway.IsValid() {
+					gatewayStr = ipamCfg.Gateway.String()
+				}
+				subnetDetails = calculateSubnetDetails(subnetStr, gatewayStr, netContainers, nil)
+				break
+			}
+		}
+
+		enriched = append(enriched, EnrichedDockerNetwork{
+			Summary:       n,
+			SubnetDetails: subnetDetails,
+			Containers:    netContainers,
+		})
+	}
+
+	writeJSON(w, http.StatusOK, enriched)
 }
 
 func (s *Server) HandleGetNetwork(w http.ResponseWriter, r *http.Request) {
@@ -387,7 +582,99 @@ func (s *Server) HandleGetNetwork(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "Netzwerk nicht gefunden: "+err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, netInspect)
+
+	containers := s.inv.Containers()
+	containerMap := make(map[string]docker.Container, len(containers))
+	for _, c := range containers {
+		containerMap[c.ID] = c
+	}
+
+	netContainers := make(map[string]NetworkContainerEndpoint)
+
+	// Populate from inspected containers
+	for cid, ep := range netInspect.Containers {
+		state := ""
+		if c, ok := containerMap[cid]; ok {
+			state = c.State
+		} else {
+			for _, c := range containers {
+				if c.ID == cid || c.ShortID == cid || strings.HasPrefix(cid, c.ShortID) || c.Name == ep.Name {
+					state = c.State
+					break
+				}
+			}
+		}
+		ipv4Str := ""
+		if ep.IPv4Address.IsValid() {
+			ipv4Str = ep.IPv4Address.String()
+		}
+		ipv6Str := ""
+		if ep.IPv6Address.IsValid() {
+			ipv6Str = ep.IPv6Address.String()
+		}
+		macStr := ""
+		if len(ep.MacAddress) > 0 {
+			macStr = ep.MacAddress.String()
+		}
+
+		netContainers[cid] = NetworkContainerEndpoint{
+			Name:        ep.Name,
+			EndpointID:  ep.EndpointID,
+			MacAddress:  macStr,
+			IPv4Address: ipv4Str,
+			IPv6Address: ipv6Str,
+			State:       state,
+		}
+	}
+
+	// Also ensure any containers in inventory attached to this network are included
+	for _, c := range containers {
+		for _, cn := range c.Networks {
+			matches := cn.NetworkID == netInspect.ID || cn.Name == netInspect.Name
+			if !matches && len(netInspect.ID) >= 12 && len(cn.NetworkID) >= 12 {
+				matches = strings.HasPrefix(cn.NetworkID, netInspect.ID[:12]) || strings.HasPrefix(netInspect.ID, cn.NetworkID[:12])
+			}
+			if matches {
+				if _, exists := netContainers[c.ID]; !exists {
+					ipv4 := cn.IPAddress
+					if ipv4 != "" && cn.PrefixLen > 0 {
+						ipv4 = fmt.Sprintf("%s/%d", cn.IPAddress, cn.PrefixLen)
+					}
+					netContainers[c.ID] = NetworkContainerEndpoint{
+						Name:        c.Name,
+						EndpointID:  cn.EndpointID,
+						MacAddress:  cn.MacAddress,
+						IPv4Address: ipv4,
+						IPv6Address: cn.IPv6,
+						State:       c.State,
+					}
+				}
+			}
+		}
+	}
+
+	var subnetDetails *SubnetDetails
+	for _, ipamCfg := range netInspect.IPAM.Config {
+		if ipamCfg.Subnet.IsValid() {
+			subnetStr := ipamCfg.Subnet.String()
+			gatewayStr := ""
+			if ipamCfg.Gateway.IsValid() {
+				gatewayStr = ipamCfg.Gateway.String()
+			}
+			subnetDetails = calculateSubnetDetails(subnetStr, gatewayStr, netContainers, netInspect.Status)
+			break
+		}
+	}
+
+	enriched := EnrichedDockerNetwork{
+		Summary:       network.Summary{Network: netInspect.Network},
+		SubnetDetails: subnetDetails,
+		Containers:    netContainers,
+		Services:      netInspect.Services,
+		Status:        netInspect.Status,
+	}
+
+	writeJSON(w, http.StatusOK, enriched)
 }
 
 func (s *Server) HandleListImages(w http.ResponseWriter, r *http.Request) {
