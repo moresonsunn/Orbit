@@ -52,6 +52,26 @@ docker run -d \
 curl -fsSL https://raw.githubusercontent.com/moresonsunn/orbit/main/docker-compose.prod.yml -o docker-compose.yml && docker compose up -d
 ```
 
+### CasaOS Installation
+
+Orbit includes full native support and packaging for **CasaOS** and **ZimaOS**:
+
+#### Method 1: 1-Click Custom Install (CasaOS Web UI)
+1. Open the **App Store** on your CasaOS dashboard.
+2. Click **Custom Install** (top right) and then click **Import**.
+3. Copy & paste the contents of [`Apps/Orbit/docker-compose.yml`](Apps/Orbit/docker-compose.yml).
+4. Click **Submit** and then **Install**. The Orbit tile will be created on your dashboard.
+
+#### Method 2: Custom AppStore Repository Setup
+1. In CasaOS, open the **App Store** and click **Manage App Stores / Add Source**.
+2. Enter the repository ZIP archive URL:
+   ```text
+   https://github.com/moresonsunn/Orbit/archive/refs/heads/main.zip
+   ```
+3. Click **Add**. Orbit will appear directly inside the App Store catalog under the **Developer** category with 1-click install and automated update notifications.
+
+See the complete [CasaOS & Linux Installation Guide](docs/INSTALLATION.md) for full configuration options and details.
+
 ### First-Time Setup
 1. Retrieve the single-use setup token from container logs:
    ```bash

@@ -1,7 +1,7 @@
 # ==========================================
 # Stage 1: Build React Frontend
 # ==========================================
-FROM node:22-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:22-alpine AS frontend-builder
 WORKDIR /app/frontend
 
 COPY frontend/package*.json ./
@@ -13,7 +13,7 @@ RUN npm run build
 # ==========================================
 # Stage 2: Build Go Backend
 # ==========================================
-FROM golang:1.26-bookworm AS backend-builder
+FROM --platform=$BUILDPLATFORM golang:1.26-bookworm AS backend-builder
 WORKDIR /app/backend
 
 COPY backend/go.mod backend/go.sum ./
@@ -23,8 +23,8 @@ COPY backend/ ./
 # Copy built frontend into backend/web/dist for go:embed
 COPY --from=frontend-builder /app/frontend/dist ./web/dist
 
-ARG TARGETOS=linux
-ARG TARGETARCH=amd64
+ARG TARGETOS
+ARG TARGETARCH
 ENV CGO_ENABLED=0
 
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -ldflags="-s -w" -o /app/orbit ./cmd/orbit

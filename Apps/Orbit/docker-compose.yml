@@ -1,0 +1,70 @@
+name: orbit
+
+services:
+  orbit:
+    image: moresonsunn/orbit:latest
+    container_name: orbit
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ORBIT_LISTEN: ":8080"
+      ORBIT_DATA_DIR: "/data"
+      ORBIT_ENABLE_ACTIONS: "false"
+      ORBIT_ENABLE_DESTRUCTIVE: "false"
+      ORBIT_GPU: "auto"
+      ORBIT_EBPF: "auto"
+    volumes:
+      - /DATA/AppData/$AppID/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+    security_opt:
+      - no-new-privileges:true
+    x-casaos:
+      ports:
+        - container: "8080"
+          description:
+            en_US: "Orbit Web UI and API Port"
+      volumes:
+        - container: /data
+          description:
+            en_US: "Orbit persistent SQLite database and application data"
+        - container: /var/run/docker.sock
+          description:
+            en_US: "Host Docker daemon socket for container management and monitoring"
+        - container: /host/proc
+          description:
+            en_US: "Host /proc filesystem for real-time CPU and memory metrics"
+        - container: /host/sys
+          description:
+            en_US: "Host /sys filesystem for kernel and hardware telemetry"
+        - container: /host/etc/os-release
+          description:
+            en_US: "Host operating system release identification"
+
+x-casaos:
+  id: dev.orbit.orbit
+  main: orbit
+  port_map: "8080"
+  scheme: http
+  index: /
+  category: Developer
+  architectures:
+    - amd64
+    - arm64
+  title:
+    en_US: "Orbit"
+  tagline:
+    en_US: "Lightweight Docker Container Management & Monitoring"
+  description:
+    en_US: "Orbit is an ultra-fast, self-hosted Docker infrastructure, management and real-time monitoring platform. Built with Go and modern web technologies, Orbit delivers instantaneous visibility into Docker containers, network flows, IPAM subnets, host telemetry, and container lifecycle operations through modern WebSocket streaming."
+  developer: moresonsunn
+  author: Orbit Team
+  icon: https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/icon.png
+  thumbnail: https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/icon.png
+  screenshot_link:
+    - https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/screenshot-1.png
+    - https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/screenshot-2.png
+    - https://raw.githubusercontent.com/moresonsunn/Orbit/main/Apps/Orbit/screenshot-3.png
